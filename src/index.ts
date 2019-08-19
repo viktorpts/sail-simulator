@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { makeSea, makeCube, makeTerrain } from './models/modelMaker';
+import { makeSea, makeTerrain } from './models/modelMaker';
 import Boat from './models/Boat';
-import { deltaFromAngle } from './util';
+import { deltaFromAngle, generateHeight } from './util';
 
 
 function main() {
@@ -14,15 +14,17 @@ function main() {
         a: false,
         s: false,
         d: false,
-        _speed: 0
+        q: false,
+        e: false,
     };
     const cameraPosition = {
         angle: Math.PI / 3,
-        distance: 10
+        distance: 250
     };
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     document.addEventListener('keydown', (e) => keys[e.key] = true);
     document.addEventListener('keyup', (e) => keys[e.key] = false);
+    document.addEventListener('wheel', (e) => zoom(cameraPosition, e.deltaY));
 
     const seaAmbience = document.createElement('audio');
     const seaAmbienceSource = document.createElement('source');
@@ -68,19 +70,14 @@ function main() {
     light.position.set(-10, 10, 40);
     scene.add(light, light.target);
 
-    /*
-    const cubes = [
-        //makeCube(0x44FF44, 0),
-        makeCube(0x4444FF, -4),
-        makeCube(0xFF4444, 4)
-    ];
-    cubes.forEach(c => scene.add(c));
-    */
-
-    const boat = new Boat();
+    const worldWidth = 512;
+    const worldDepth = 512;
+    const z = 152;
+    const data = generateHeight(worldWidth, worldDepth, z);
+    const terrain = makeTerrain(data, worldWidth, worldDepth);
+    terrain.position.y = -38;
+    const boat = new Boat(data, worldWidth, worldDepth);
     const sea = makeSea();
-    const terrain = makeTerrain();
-    terrain.position.y = -20;
     scene.add(boat.mesh);
     scene.add(terrain);
     for (let x = -10; x < 10; x++) {
@@ -93,14 +90,6 @@ function main() {
         processInput(camera, cameraPosition, keys, boat);
         time *= 0.001;  // convert time to seconds
 
-        /*
-        cubes.slice(0, 1).forEach((cube, ndx) => {
-            const speed = 1 + ndx * .1;
-            const rot = time * speed;
-            cube.rotation.x = rot;
-            cube.rotation.y = rot;
-        });
-        */
         sea.update(time);
         boat.update(time);
         boatSound.volume = boat.speed * 0.75;
@@ -128,10 +117,10 @@ function processInput(camera: THREE.PerspectiveCamera, cameraPosition: any, keys
         cameraPosition.angle -= Math.PI / 100;
     }
     if (keys.ArrowUp) {
-        cameraPosition.distance -= 0.05 + Number((cameraPosition.distance / 200).toFixed(2));
+        zoomIn(cameraPosition);
     }
     if (keys.ArrowDown) {
-        cameraPosition.distance += 0.05 + Number((cameraPosition.distance / 200).toFixed(2));
+        zoomOut(cameraPosition);
     }
 
     // Boat controls
@@ -147,10 +136,40 @@ function processInput(camera: THREE.PerspectiveCamera, cameraPosition: any, keys
     if (keys.s) {
         boat.decelerate();
     }
+    if (keys.q) {
+        boat.trimLeft();
+    }
+    if (keys.e) {
+        boat.trimRight();
+    }
 
     const { x, z } = deltaFromAngle(cameraPosition);
     camera.position.x = boat.mesh.position.x + x;
     camera.position.z = boat.mesh.position.z + z;
     camera.position.y = cameraPosition.distance - 5;
     camera.lookAt(boat.mesh.position.x, 2, boat.mesh.position.z);
+}
+
+function zoom(cameraPosition: any, deltaY: number) {
+    if (deltaY < 0) {
+        zoomIn(cameraPosition);
+        zoomIn(cameraPosition);
+        zoomIn(cameraPosition);
+        zoomIn(cameraPosition);
+        zoomIn(cameraPosition);
+    } else {
+        zoomOut(cameraPosition);
+        zoomOut(cameraPosition);
+        zoomOut(cameraPosition);
+        zoomOut(cameraPosition);
+        zoomOut(cameraPosition);
+    }
+}
+
+function zoomIn(cameraPosition: any) {
+    cameraPosition.distance -= 0.05 + Number((cameraPosition.distance / 150).toFixed(2));
+}
+
+function zoomOut(cameraPosition: any) {
+    cameraPosition.distance += 0.05 + Number((cameraPosition.distance / 150).toFixed(2));
 }

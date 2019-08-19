@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import MeshBuilder from './MeshBuilder';
-import { ImprovedNoise } from './ImprovedNoise';
+import { generateHeight } from '../util';
+
 
 export function makeBoat(color: number) {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color }));
@@ -51,26 +52,31 @@ export function makeBoat(color: number) {
     return model;
 }
 
-export function makeSails() {
+export function makeMainsail() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
-    // Main sail
-    model.addVertex(0, 1.5, 1);     // 0
-    model.addVertex(0, 5.5, 1);     // 1
-    model.addVertex(1, 6.5, -0.5);  // 2
-    model.addVertex(2, 1.5, -2);  // 3
+    model.addVertex(0, 1.5, 0);     // 0
+    model.addVertex(0, 5.5, 0);     // 1
+    model.addVertex(0, 6.5, -1.5);  // 2
+    model.addVertex(0, 1.5, -3);  // 3
 
     model.addFace(0, 1, 2);
     model.addFace(0, 2, 3);
     model.addFace(0, 2, 1);
     model.addFace(0, 3, 2);
 
-    // Head sail
-    model.addVertex(0, 1.3, 4);  // 4
-    model.addVertex(0, 6.5, 1);  // 5
-    model.addVertex(1.5, 2, 1.5);  // 6
+    model.mesh.castShadow = true;
+    model.mesh.receiveShadow = true;
+    return model;
+}
 
-    model.addFace(4, 5, 6);
-    model.addFace(5, 4, 6);
+export function makeHeadsail() {
+    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
+    model.addVertex(0, -5.8, 0);  // 0
+    model.addVertex(0, 0, 0);  // 1
+    model.addVertex(0, -4.5, -2);  // 2
+
+    model.addFace(0, 1, 2);
+    model.addFace(0, 2, 1);
 
     model.mesh.castShadow = true;
     model.mesh.receiveShadow = true;
@@ -98,16 +104,24 @@ export function makeSea() {
     return { mesh, update, getOffset };
 
     function update(time: number) {
-        for (let i = 0; i < position.count; i++) {
-            if ((i + 1) % (qxc + 1) == 0) {
-                const y = position.getY(i - qxc);
-                position.setY(i, y);
-            } else if (i >= (qxc + 1) * qxc) {
-                const y = position.getY(i - (qxc + 1) * qxc);
-                position.setY(i, y);
-            } else {
-                const y = 0.1 * (1 + Math.sin(i / 5 + (time * 3 + i)));
-                position.setY(i, y);
+        for (let col = 0; col <= qxc; col++) {
+            for (let row = 0; row <= qxc; row++) {
+                const i = row * (qxc + 1) + col;
+
+                if (col == qxc) {
+                    const y = position.getY(i - col);
+                    position.setY(i, y);
+                } else if (row == qxc) {
+                    const y = position.getY(i - row * (qxc + 1));
+                    position.setY(i, y);
+                } else {
+                    const mainWave = (1 + Math.sin(i / 5 + (time * 3 + i))) * 0.5;
+                    const secondaryWave = (1 + Math.sin(i / 5 + (time * 10 + i))) * 0.5;
+                    const xWave = (1 + Math.sin(time * 10 + col)) * 0.5;
+                    const yWave = (1 + Math.sin(time * 10 + row)) * 0.5;
+                    const y = mainWave * 0.1 + secondaryWave * 0.05 + xWave * 0.05 + yWave * 0.05;
+                    position.setY(i, y);
+                }
             }
         }
         geometry.computeVertexNormals();
@@ -123,51 +137,7 @@ export function makeSea() {
     }
 }
 
-const geometry = new THREE.Geometry();
-geometry.vertices.push(
-    new THREE.Vector3(-1, -1, 1),  // 0
-    new THREE.Vector3(1, -1, 1),  // 1
-    new THREE.Vector3(-1, 1, 1),  // 2
-    new THREE.Vector3(1, 1, 1),  // 3
-    new THREE.Vector3(-1, -1, -1),  // 4
-    new THREE.Vector3(1, -1, -1),  // 5
-    new THREE.Vector3(-1, 1, -1),  // 6
-    new THREE.Vector3(1, 1, -1),  // 7
-);
-geometry.faces.push(
-    // front
-    new THREE.Face3(0, 3, 2),
-    new THREE.Face3(0, 1, 3),
-    // right
-    new THREE.Face3(1, 7, 3),
-    new THREE.Face3(1, 5, 7),
-    // back
-    new THREE.Face3(5, 6, 7),
-    new THREE.Face3(5, 4, 6),
-    // left
-    new THREE.Face3(4, 2, 6),
-    new THREE.Face3(4, 0, 2),
-    // top
-    new THREE.Face3(2, 7, 6),
-    new THREE.Face3(2, 3, 7),
-    // bottom
-    new THREE.Face3(4, 1, 0),
-    new THREE.Face3(4, 5, 1),
-);
-geometry.computeFaceNormals();
-
-export function makeCube(color: number, x: number) {
-    const material = new THREE.MeshPhongMaterial({ color });
-    const cube = new THREE.Mesh(geometry, material);
-    cube.position.x = x;
-
-    return cube;
-}
-
-export function makeTerrain() {
-    const worldWidth = 256;
-    const worldDepth = 256;
-    const data = generateHeight(worldWidth, worldDepth);
+export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: number) {
     var geometry = new THREE.PlaneBufferGeometry(2000, 2000, worldWidth - 1, worldDepth - 1);
     geometry.rotateX(- Math.PI / 2);
     var vertices = <Array<number>>(<THREE.BufferAttribute>geometry.attributes.position).array;
@@ -184,29 +154,17 @@ export function makeTerrain() {
 
     return mesh;
 
-    function generateHeight(width: number, height: number) {
-        const size = width * height;
-        const data = new Uint8Array(size);
-        const perlin: { noise: Function } = ImprovedNoise();
-        let quality = 1;
-        const z = 150;
 
-        for (var j = 0; j < 4; j++) {
-            for (var i = 0; i < size; i++) {
-                var x = i % width, y = ~ ~(i / width);
-                data[i] += Math.abs(perlin.noise(x / quality, y / quality, z) * quality * 1.75);
-            }
-            quality *= 5;
-        }
-        return data;
-    }
 
-    function generateTexture(data: Uint8Array, width: number, height: number) {
+    function generateTexture(data: Int16Array, width: number, height: number) {
+        const z = 50;
+        const biomes = generateHeight(width, height, z);
         var canvas, canvasScaled, context, image, imageData, vector3, sun, shade;
         vector3 = new THREE.Vector3(0, 0, 0);
         sun = new THREE.Vector3(5, 10, -10);
         sun.normalize();
         canvas = document.createElement('canvas');
+        canvas.id = 'map';
         canvas.width = width;
         canvas.height = height;
         context = canvas.getContext('2d');
@@ -215,25 +173,34 @@ export function makeTerrain() {
         image = context.getImageData(0, 0, canvas.width, canvas.height);
         imageData = image.data;
         for (var i = 0, j = 0, l = imageData.length; i < l; i += 4, j++) {
+            const blendAmt = Math.min((biomes[j] > 50 ? biomes[j] - 50 : 0), 25) / 25;
+
             vector3.x = data[j - 2] - data[j + 2];
             vector3.y = 2;
             vector3.z = data[j - width * 2] - data[j + width * 2];
             vector3.normalize();
             shade = vector3.dot(sun);
             const heightModifier = (0.5 + data[j] * 0.007);
-            imageData[i] = (21 + shade * 16) * heightModifier; // 21 - 37
-            imageData[i + 1] = (91 + shade * 14) * heightModifier; // 91 - 105
-            imageData[i + 2] = (21 + shade * 16) * heightModifier; // 21 - 37
-
-            /*
-            if (data[j] < 41) {
-                imageData[i] = (28 + (data[j] - 40) * 151); // 28 - 179
-                imageData[i + 1] = (47 + (data[j] - 40) * 165); // 47 - 212
-                imageData[i + 2] = (99 + (data[j] - 40) * 131); // 99 - 230
-            } else*/ if (data[j] < 45) {
-                imageData[i] = (138 + shade * 74); // 138 - 212
-                imageData[i + 1] = (121 + shade * 66); // 121 - 187
-                imageData[i + 2] = (76 + shade * 45); // 76 - 121
+            
+            if (data[j] <= 74) {
+                //*
+                imageData[i] = 28;
+                imageData[i + 1] = 47;
+                imageData[i + 2] = 99;
+                //*/
+                /*
+                imageData[i] = illuminate(28, shade);
+                imageData[i + 1] = illuminate(47, shade);
+                imageData[i + 2] = illuminate(99, shade);
+                */
+            } else if (data[j] <= 80) {
+                imageData[i] = illuminate(212, shade);
+                imageData[i + 1] = illuminate(187, shade);
+                imageData[i + 2] = illuminate(121, shade);
+            } else {
+                imageData[i] = illuminate(blend(37, biomes[j], blendAmt), shade) * heightModifier;
+                imageData[i + 1] = illuminate(blend(105, biomes[j], blendAmt), shade) * heightModifier;
+                imageData[i + 2] = illuminate(blend(37, biomes[j], blendAmt), shade) * heightModifier;
             }
         }
         context.putImageData(image, 0, 0);
@@ -253,6 +220,19 @@ export function makeTerrain() {
             imageData[i + 2] += v;
         }
         context.putImageData(image, 0, 0);
+        document.body.appendChild(canvas);
         return canvasScaled;
+
+        function grade(min: number, max: number, value: number) {
+            return min + value * (max - min);
+        }
+
+        function illuminate(color: number, shade: number) {
+            return grade(Math.floor(color * 0.65), color, shade);
+        }
+
+        function blend(a: number, b: number, cent: number) {
+            return (a * (1 - cent) + b * cent) * 0.5;
+        }
     }
 }
