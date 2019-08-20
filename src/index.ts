@@ -2,14 +2,14 @@ import * as THREE from 'three';
 import { makeSea, makeTerrain } from './models/modelMaker';
 import Boat from './models/Boat';
 import { deltaFromAngle, generateHeight } from './util';
-
+import { Input } from './CtrlScheme';
 
 function main() {
     const keys: any = {
-        ArrowLeft: false,
-        ArrowRight: false,
-        ArrowUp: false,
-        ArrowDown: false,
+        [Input.Left]: false,
+        [Input.Right]: false,
+        [Input.Up]: false,
+        [Input.Down]: false,
         w: false,
         a: false,
         s: false,
@@ -22,8 +22,8 @@ function main() {
         distance: 250
     };
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    document.addEventListener('keydown', (e) => keys[e.key] = true);
-    document.addEventListener('keyup', (e) => keys[e.key] = false);
+    document.addEventListener('keydown', (e) => keys[e.code] = true);
+    document.addEventListener('keyup', (e) => keys[e.code] = false);
     document.addEventListener('wheel', (e) => zoom(cameraPosition, e.deltaY));
 
     const seaAmbience = document.createElement('audio');
@@ -110,36 +110,36 @@ function main() {
 main();
 
 function processInput(camera: THREE.PerspectiveCamera, cameraPosition: any, keys: any, boat: Boat) {
-    if (keys.ArrowLeft) {
+    if (keys[Input.Left]) {
         cameraPosition.angle += Math.PI / 100;
     }
-    if (keys.ArrowRight) {
+    if (keys[Input.Right]) {
         cameraPosition.angle -= Math.PI / 100;
     }
-    if (keys.ArrowUp) {
+    if (keys[Input.Up]) {
         zoomIn(cameraPosition);
     }
-    if (keys.ArrowDown) {
+    if (keys[Input.Down]) {
         zoomOut(cameraPosition);
     }
 
     // Boat controls
-    if (keys.a) {
+    if (keys[Input.TurnLeft]) {
         boat.turnLeft();
     }
-    if (keys.d) {
+    if (keys[Input.TurnRight]) {
         boat.turnRight();
     }
-    if (keys.w) {
+    if (keys[Input.MoreSails]) {
         boat.accelerate();
     }
-    if (keys.s) {
+    if (keys[Input.ReefSails]) {
         boat.decelerate();
     }
-    if (keys.q) {
+    if (keys[Input.TrimLeft]) {
         boat.trimLeft();
     }
-    if (keys.e) {
+    if (keys[Input.TrimRight]) {
         boat.trimRight();
     }
 
@@ -157,7 +157,13 @@ function zoom(cameraPosition: any, deltaY: number) {
         zoomIn(cameraPosition);
         zoomIn(cameraPosition);
         zoomIn(cameraPosition);
+        zoomIn(cameraPosition);
+        zoomIn(cameraPosition);
+        zoomIn(cameraPosition);
     } else {
+        zoomOut(cameraPosition);
+        zoomOut(cameraPosition);
+        zoomOut(cameraPosition);
         zoomOut(cameraPosition);
         zoomOut(cameraPosition);
         zoomOut(cameraPosition);
