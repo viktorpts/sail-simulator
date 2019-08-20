@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeSea, makeTerrain } from './models/modelMaker';
+import { makeWaves, makeTerrain, makeSea } from './models/modelMaker';
 import Boat from './models/Boat';
 import { deltaFromAngle, generateHeight } from './util';
 import { Input } from './CtrlScheme';
@@ -10,21 +10,19 @@ function main() {
         [Input.Right]: false,
         [Input.Up]: false,
         [Input.Down]: false,
-        w: false,
-        a: false,
-        s: false,
-        d: false,
-        q: false,
-        e: false,
     };
     const cameraPosition = {
         angle: Math.PI / 3,
-        distance: 250
+        distance: 250,
+        height: 5
     };
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     document.addEventListener('keydown', (e) => keys[e.code] = true);
     document.addEventListener('keyup', (e) => keys[e.code] = false);
     document.addEventListener('wheel', (e) => zoom(cameraPosition, e.deltaY));
+    document.addEventListener('mousedown', e => dragClick(e, keys, cameraPosition));
+    document.addEventListener('mouseup', (e) => keys.mouse = false);
+    document.addEventListener('mousemove', (e) => dragRotate(e, keys.mouse, cameraPosition));
 
     const seaAmbience = document.createElement('audio');
     const seaAmbienceSource = document.createElement('source');
@@ -75,14 +73,15 @@ function main() {
     const z = 152;
     const data = generateHeight(worldWidth, worldDepth, z);
     const terrain = makeTerrain(data, worldWidth, worldDepth);
-    terrain.position.y = -38;
     const boat = new Boat(data, worldWidth, worldDepth);
-    const sea = makeSea();
+    const waves = makeWaves();
+    const sea = makeSea(data, worldWidth, worldDepth);
     scene.add(boat.mesh);
     scene.add(terrain);
+    scene.add(sea);
     for (let x = -10; x < 10; x++) {
         for (let y = -10; y < 10; y++) {
-            scene.add(sea.getOffset(x, y));
+            scene.add(waves.getOffset(x, y));
         }
     }
 
@@ -90,7 +89,7 @@ function main() {
         processInput(camera, cameraPosition, keys, boat);
         time *= 0.001;  // convert time to seconds
 
-        sea.update(time);
+        waves.update(time);
         boat.update(time);
         boatSound.volume = boat.speed * 0.75;
 
@@ -146,7 +145,7 @@ function processInput(camera: THREE.PerspectiveCamera, cameraPosition: any, keys
     const { x, z } = deltaFromAngle(cameraPosition);
     camera.position.x = boat.mesh.position.x + x;
     camera.position.z = boat.mesh.position.z + z;
-    camera.position.y = cameraPosition.distance - 5;
+    camera.position.y = cameraPosition.height;
     camera.lookAt(boat.mesh.position.x, 2, boat.mesh.position.z);
 }
 
@@ -178,4 +177,23 @@ function zoomIn(cameraPosition: any) {
 
 function zoomOut(cameraPosition: any) {
     cameraPosition.distance += 0.05 + Number((cameraPosition.distance / 150).toFixed(2));
+}
+
+function dragClick(e: MouseEvent, keys: any, cameraPosition: any) {
+    keys.mouse = true;
+    cameraPosition.mouseX = e.clientX;
+    cameraPosition.mouseY = e.clientY;
+}
+
+function dragRotate(e: MouseEvent, mode: boolean, cameraPosition: any) {
+    if (mode) {
+        const deltaX = cameraPosition.mouseX - e.clientX;
+        cameraPosition.angle += Math.PI / 500 * deltaX;
+        cameraPosition.mouseX = e.clientX;
+
+        const deltaY = cameraPosition.mouseY - e.clientY;
+        cameraPosition.height -= deltaY / 5;
+        cameraPosition.mouseY = e.clientY;
+
+    }
 }

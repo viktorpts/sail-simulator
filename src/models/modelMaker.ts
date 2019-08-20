@@ -83,7 +83,7 @@ export function makeHeadsail() {
     return model;
 }
 
-export function makeSea() {
+export function makeWaves() {
     const qxc = 100;
 
     const geometry = new THREE.PlaneBufferGeometry(qxc, qxc, qxc, qxc);
@@ -97,7 +97,7 @@ export function makeSea() {
         position.setY(i, y);
     }
     geometry.computeVertexNormals();
-    const material = new THREE.MeshPhongMaterial({ color: 0x1c2f63 });
+    const material = new THREE.MeshStandardMaterial({ color: 0x1c2f63, transparent: true, opacity: 0.5 });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;
 
@@ -137,6 +137,66 @@ export function makeSea() {
     }
 }
 
+export function makeSea(data: Int16Array, width: number, height: number) {
+    var geometry = new THREE.PlaneBufferGeometry(2000, 2000, 16, 16);
+    geometry.rotateX(- Math.PI / 2);
+    
+    const texture = new THREE.CanvasTexture(generateTexture(data, width, height));
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
+    mesh.position.y = -0.1;
+
+    return mesh;
+
+
+    function generateTexture(data: Int16Array, width: number, height: number) {
+        //const z = 50;
+        //const biomes = generateHeight(width, height, z);
+        var canvas, canvasScaled, context, image, imageData;
+        canvas = document.createElement('canvas');
+        canvas.id = 'map';
+        canvas.width = width;
+        canvas.height = height;
+        context = canvas.getContext('2d');
+        context.fillStyle = '#000';
+        context.fillRect(0, 0, width, height);
+        image = context.getImageData(0, 0, canvas.width, canvas.height);
+        imageData = image.data;
+        for (var i = 0, j = 0, l = imageData.length; i < l; i += 4, j++) {
+            if (data[j] <= 74) {
+                //*
+                imageData[i] = 28;
+                imageData[i + 1] = 47;
+                imageData[i + 2] = 99;
+            } else {
+                imageData[i] = 255;
+                imageData[i + 1] = 255;
+                imageData[i + 2] = 255;
+            }
+        }
+        context.putImageData(image, 0, 0);
+        // Scaled 4x
+        canvasScaled = document.createElement('canvas');
+        canvasScaled.width = width * 4;
+        canvasScaled.height = height * 4;
+        context = canvasScaled.getContext('2d');
+        context.scale(4, 4);
+        context.drawImage(canvas, 0, 0);
+        image = context.getImageData(0, 0, canvasScaled.width, canvasScaled.height);
+        imageData = image.data;
+        for (var i = 0, l = imageData.length; i < l; i += 4) {
+            var v = ~ ~(Math.random() * 5);
+            imageData[i] += v;
+            imageData[i + 1] += v;
+            imageData[i + 2] += v;
+        }
+        context.putImageData(image, 0, 0);
+        return canvasScaled;
+    }
+}
+
 export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: number) {
     var geometry = new THREE.PlaneBufferGeometry(2000, 2000, worldWidth - 1, worldDepth - 1);
     geometry.rotateX(- Math.PI / 2);
@@ -151,9 +211,9 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
     texture.wrapT = THREE.ClampToEdgeWrapping;
 
     const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
+    mesh.position.y = -38;
 
     return mesh;
-
 
 
     function generateTexture(data: Int16Array, width: number, height: number) {
