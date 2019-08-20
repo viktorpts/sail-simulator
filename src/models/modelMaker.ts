@@ -280,7 +280,7 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
             imageData[i + 2] += v;
         }
         context.putImageData(image, 0, 0);
-        document.body.appendChild(canvas);
+        document.getElementById('output').appendChild(canvas);
         return canvasScaled;
 
         function grade(min: number, max: number, value: number) {
@@ -295,4 +295,19 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
             return (a * (1 - cent) + b * cent) * 0.5;
         }
     }
+}
+
+export function makeCompass() {
+    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xffffff }));
+    model.addVertex(0, 0, -5); // 0 Up
+    model.addVertex(-5, 0, 0); // 1 Left
+    model.addVertex(0, 0, 5); // 2 Down
+    model.addVertex(5, 0, 0); // 3 Right
+
+    // North
+    model.addVertex(0, 0, -15); // 4
+    model.addFace(1, 0, 4);
+    model.addFace(3, 4, 0);
+
+    return model.mesh;
 }

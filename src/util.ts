@@ -93,3 +93,9 @@ function getCoord(index: number, width: number) {
     const x = index - y;
     return [x, y];
 }
+
+const debugDiv= document.getElementById('debug');
+
+export function print(data: string) {
+    debugDiv.textContent = data;
+}

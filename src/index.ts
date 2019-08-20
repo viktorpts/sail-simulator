@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeWaves, makeTerrain, makeSea } from './models/modelMaker';
+import { makeWaves, makeTerrain, makeSea, makeCompass } from './models/modelMaker';
 import Boat from './models/Boat';
 import { deltaFromAngle, generateHeight } from './util';
 import { Input } from './CtrlScheme';
@@ -13,7 +13,7 @@ function main() {
     };
     const cameraPosition = {
         angle: Math.PI / 3,
-        distance: 250,
+        distance: 10,
         height: 5
     };
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -67,6 +67,8 @@ function main() {
     light.castShadow = true;
     light.position.set(-10, 10, 40);
     scene.add(light, light.target);
+
+    scene.add(makeCompass());
 
     const worldWidth = 512;
     const worldDepth = 512;

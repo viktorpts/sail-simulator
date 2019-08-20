@@ -1,5 +1,5 @@
 import { makeBoat, makeMainsail, makeHeadsail } from './modelMaker';
-import { deltaFromAngle } from '../util';
+import { deltaFromAngle, print } from '../util';
 import * as THREE from 'three';
 
 
@@ -13,11 +13,13 @@ export default class Boat {
     private _speed: number = 0;
     private mainsail: THREE.Mesh;
     private headsail: THREE.Mesh;
-    private heighMap: Uint8Array;
+    private heighMap: Int16Array;
     private lastMap = { x: 0, y: 0 };
     private world: { width: number, height: number }
+    private velocity: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+    private heading: number = 0;
 
-    constructor(heightMap: Uint8Array, worldWidth: number, worldHeight: number) {
+    constructor(heightMap: Int16Array, worldWidth: number, worldHeight: number) {
         const hull = makeBoat(0x917833).mesh;
         this.mainsail = makeMainsail().mesh;
         this.mainsail.position.z = 1;
@@ -27,6 +29,7 @@ export default class Boat {
         this.headsail.rotation.x = - Math.PI / 6;
         this._mesh = new THREE.Group();
         this._mesh.add(hull, this.mainsail, this.headsail);
+        this._mesh.rotation.y = this.heading + Math.PI;
 
         this.heighMap = heightMap;
         this.world = { width: worldWidth, height: worldHeight };
@@ -34,7 +37,7 @@ export default class Boat {
 
     update(time: number) {
         if (this._speed != 0) {
-            const { x: deltaX, z: deltaZ } = deltaFromAngle({ distance: this._speed, angle: this._mesh.rotation.y });
+            const { x: deltaX, z: deltaZ } = deltaFromAngle({ distance: this._speed, angle: this.heading + Math.PI });
             const newPos = {
                 x: this._mesh.position.x + deltaX,
                 z: this._mesh.position.z + deltaZ
@@ -58,6 +61,8 @@ export default class Boat {
 
         this._mesh.rotation.z = Math.sin(time) / 10 + this.mainsail.rotation.y * 0.25 * this._speed / 0.15;
         this._mesh.position.y = (Math.sin(time * 2 / 3) / 10) - 0.3;
+
+        print(`Heading: ${this.heading}`);
     }
 
     private checkCollision(x: number, y: number): boolean {
@@ -91,11 +96,19 @@ export default class Boat {
     }
 
     turnLeft() {
-        this._mesh.rotation.y += minTurnRate + this._speed * turnRateDelta;
+        this.heading += minTurnRate + this._speed * turnRateDelta;
+        if (this.heading > Math.PI * 2) {
+            this.heading = this.heading - Math.PI * 2;
+        }
+        this._mesh.rotation.y = this.heading + Math.PI;
     }
 
     turnRight() {
-        this._mesh.rotation.y -= minTurnRate + this._speed * turnRateDelta;
+        this.heading -= minTurnRate + this._speed * turnRateDelta;
+        if (this.heading < 0) {
+            this.heading = Math.PI * 2 - this.heading;
+        }
+        this._mesh.rotation.y = this.heading + Math.PI;
     }
 
     trimLeft() {
