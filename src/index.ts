@@ -1,10 +1,7 @@
 import * as THREE from 'three';
-import { makeWaves, makeTerrain, makeSea, makeCompass } from './models/modelMaker';
 import Boat from './models/Boat';
-import { generateHeight } from './util';
 import { Input } from './CtrlScheme';
-import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, STEP_SIZE } from './constants';
-import TrackingCamera from './models/TrackingCamera';
+import { STEP_SIZE } from './constants';
 import { Sound } from './components/sound';
 import NauticalScene from './models/NauticalScene';
 
