@@ -23,7 +23,7 @@ export default class TrackingCamera extends PerspectiveCamera {
         const z = this.distance * Math.cos(this.direction) * Math.sin(this.elevation);
         const y = this.distance * Math.cos(this.elevation);
         this.position.x = this.target.position.x + x;
-        this.position.y = this.target.position.y + y + 2;
+        this.position.y = y + 2;
         this.position.z = this.target.position.z + z;
         this.lookAt(this.target.position.x, 2, this.target.position.z);
     }
