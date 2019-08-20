@@ -72,15 +72,25 @@ export function makeRudder(color: number) {
 
 export function makeMainsail() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
-    model.addVertex(0, 1.5, 0);     // 0
-    model.addVertex(0, 5.5, 0);     // 1
-    model.addVertex(0, 6.5, -1.5);  // 2
-    model.addVertex(0, 1.5, -3);  // 3
+    model.addVertex(0, 0, 0);             // 0 front bottom
+    model.addVertex(0, 4, 0);             // 1 front top
+    model.addVertex(0, 5, -1.5);          // 2 back top
+    model.addVertex(-0.75, 3.75, -1.875); // 3
+    model.addVertex(-1, 2.5, -2.25);      // 4
+    model.addVertex(-0.75, 1.25, -2.625); // 5
+    model.addVertex(0, 0, -3);            // 6 back bottom
 
     model.addFace(0, 1, 2);
     model.addFace(0, 2, 3);
+    model.addFace(0, 3, 4);
+    model.addFace(0, 4, 5);
+    model.addFace(0, 5, 6);
+
     model.addFace(0, 2, 1);
     model.addFace(0, 3, 2);
+    model.addFace(0, 4, 3);
+    model.addFace(0, 5, 4);
+    model.addFace(0, 6, 5);
 
     model.mesh.castShadow = true;
     model.mesh.receiveShadow = true;
@@ -89,12 +99,25 @@ export function makeMainsail() {
 
 export function makeHeadsail() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
-    model.addVertex(0, -5.8, 0);  // 0
-    model.addVertex(0, 0, 0);  // 1
-    model.addVertex(0, -4.5, -2);  // 2
+    model.addVertex(0, -6, 0);  // 0 front bottom
+    model.addVertex(0, 0, 0);  // 1 front top
+    model.addVertex(-0.6, -1.5, -0.7);  // 2
+    model.addVertex(-0.6, -3, -1.4);  // 3
+    model.addVertex(0, -4.5, -2.1);  // 4 back
+    model.addVertex(-0.2, -5, -1.4);  // 5
+    model.addVertex(-0.2, -5.5, -0.7);  // 6
 
     model.addFace(0, 1, 2);
+    model.addFace(0, 2, 6);
+    model.addFace(6, 2, 3);
+    model.addFace(6, 3, 5);
+    model.addFace(5, 3, 4);
+
     model.addFace(0, 2, 1);
+    model.addFace(0, 6, 2);
+    model.addFace(6, 3, 2);
+    model.addFace(6, 5, 3);
+    model.addFace(5, 4, 3);
 
     model.mesh.castShadow = true;
     model.mesh.receiveShadow = true;
