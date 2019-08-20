@@ -53,6 +53,23 @@ export function makeBoat(color: number) {
     return model;
 }
 
+export function makeRudder(color: number) {
+    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color }));
+    model.addVertex(0, 0, 0);    // 0
+    model.addVertex(0, 0, -0.5); // 1
+    model.addVertex(0, -1, -1);  // 2
+    model.addVertex(0, -1, 0);   // 3
+
+    model.addFace(0, 1, 2);
+    model.addFace(0, 2, 3);
+    model.addFace(0, 2, 1);
+    model.addFace(0, 3, 2);
+
+    model.mesh.castShadow = true;
+    model.mesh.receiveShadow = true;
+    return model;
+}
+
 export function makeMainsail() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
     model.addVertex(0, 1.5, 0);     // 0

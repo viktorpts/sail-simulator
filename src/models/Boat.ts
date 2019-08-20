@@ -1,12 +1,15 @@
-import { makeBoat, makeMainsail, makeHeadsail } from './modelMaker';
+import { makeBoat, makeRudder, makeMainsail, makeHeadsail } from './modelMaker';
 import { deltaFromAngle, print } from '../util';
 import * as THREE from 'three';
-import { WORLD_WIDTH, WORLD_HEIGHT } from '../constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, STEP_SIZE, STEP_RATE } from '../constants';
 
 
-const minTurnRate = Math.PI / 2000;
-const turnRateDelta = Math.PI / 30;
-const maxSpeed = 2;
+const turnRateDelta = 2;
+const maxRudderAngle = Math.PI * 0.25;
+const turnRate = Math.PI * 0.25;
+const acceleration = 0.4;
+const maxSpeed = 10;
+const drag = 0.05;
 
 
 export default class Boat {
@@ -14,14 +17,23 @@ export default class Boat {
     private _speed: number = 0;
     private mainsail: THREE.Mesh;
     private headsail: THREE.Mesh;
+    private rudder: THREE.Mesh;
     private heighMap: Int16Array;
     private lastMap = { x: 0, y: 0 };
     private world: { width: number, height: number }
     private velocity: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     private heading: number = 0;
+    private turnRate: number = 0;
+    private turningLeft = false;
+    private turningRight = false;
+    private accelerating = false;
+    private decelerating = false;
 
     constructor(heightMap: Int16Array, worldWidth: number, worldHeight: number) {
         const hull = makeBoat(0x917833).mesh;
+        this.rudder = makeRudder(0x917833).mesh;
+        this.rudder.position.y = 1;
+        this.rudder.position.z = -2.75;
         this.mainsail = makeMainsail().mesh;
         this.mainsail.position.z = 1;
         this.headsail = makeHeadsail().mesh;
@@ -29,7 +41,7 @@ export default class Boat {
         this.headsail.position.y = 6.5;
         this.headsail.rotation.x = - Math.PI / 6;
         this._mesh = new THREE.Group();
-        this._mesh.add(hull, this.mainsail, this.headsail);
+        this._mesh.add(hull, this.rudder, this.mainsail, this.headsail);
         this._mesh.rotation.y = this.heading + Math.PI;
 
         this.heighMap = heightMap;
@@ -37,8 +49,60 @@ export default class Boat {
     }
 
     update(time: number) {
+        if (this.turningLeft) {
+            this.turnRate += turnRateDelta * STEP_RATE;
+            if (this.turnRate > 1) {
+                this.turnRate = 1;
+            }
+        } else if (this.turningRight) {
+            this.turnRate -= turnRateDelta * STEP_RATE;
+            if (this.turnRate < -1) {
+                this.turnRate = -1;
+            }
+        } else if (this.turnRate != 0) {
+            if (this.turnRate < 0) {
+                this.turnRate += turnRateDelta * STEP_RATE;
+                if (this.turnRate > 0) {
+                    this.turnRate = 0;
+                }
+            } else {
+                this.turnRate -= turnRateDelta * STEP_RATE;
+                if (this.turnRate < 0) {
+                    this.turnRate = 0;
+                }
+            }
+        }
+        this.rudder.rotation.y = -1 * this.turnRate * maxRudderAngle;
+
+        if (this.turnRate != 0) {
+            this.heading += this.turnRate * turnRate * STEP_RATE * this._speed;
+            if (this.heading > Math.PI * 2) {
+                this.heading = this.heading - Math.PI * 2;
+            } else if (this.heading < 0) {
+                this.heading = Math.PI * 2 + this.heading;
+            }
+            this._mesh.rotation.y = this.heading + Math.PI;
+        }
+
+        if (this.accelerating) {
+            this._speed += acceleration * STEP_RATE;
+            if (this._speed > 1) {
+                this._speed = 1;
+            }
+        } else if (this.decelerating) {
+            this._speed -= acceleration * STEP_RATE;
+            if (this._speed < 0) {
+                this._speed = 0;
+            }
+        } else {
+            this._speed -= (maxSpeed * 0.05 + (this._speed ** 2)) * drag * STEP_RATE;
+            if (this._speed < 0) {
+                this._speed = 0;
+            }
+        }
+
         if (this._speed != 0) {
-            const { x: deltaX, z: deltaZ } = deltaFromAngle({ distance: this._speed, angle: this.heading + Math.PI });
+            const { x: deltaX, z: deltaZ } = deltaFromAngle({ distance: this._speed * maxSpeed * STEP_RATE, angle: this.heading + Math.PI });
             const newPos = {
                 x: this._mesh.position.x + deltaX,
                 z: this._mesh.position.z + deltaZ
@@ -53,17 +117,12 @@ export default class Boat {
                 this._mesh.position.x = newPos.x;
                 this._mesh.position.z = newPos.z;
             }
-            this._speed -= 0.0002 + ((this._speed / 0.15) ** 2) * 0.001;
-            if (this._speed < 0) {
-                this._speed = 0;
-            }
         }
 
-
-        this._mesh.rotation.z = Math.sin(time) / 10 + this.mainsail.rotation.y * 0.25 * this._speed / 0.15;
+        this._mesh.rotation.z = Math.sin(time) / 10 + this.mainsail.rotation.y * 0.25 * this._speed;
         this._mesh.position.y = (Math.sin(time * 2 / 3) / 10) - 0.3;
 
-        print(`Heading: ${this.heading}`);
+        print(`Heading: ${(this.heading / Math.PI * 180).toFixed(0)}\nSpeed: ${(this._speed * maxSpeed).toFixed(1)} knots (${(this._speed * 100).toFixed(0)}%)`);
     }
 
     private checkCollision(x: number, y: number): boolean {
@@ -93,23 +152,20 @@ export default class Boat {
     }
 
     get speed() {
-        return this._speed / 0.15;
+        return this._speed;
     }
 
     turnLeft() {
-        this.heading += minTurnRate + this._speed * turnRateDelta;
-        if (this.heading > Math.PI * 2) {
-            this.heading = this.heading - Math.PI * 2;
-        }
-        this._mesh.rotation.y = this.heading + Math.PI;
+        this.turningLeft = true;
     }
 
     turnRight() {
-        this.heading -= minTurnRate + this._speed * turnRateDelta;
-        if (this.heading < 0) {
-            this.heading = Math.PI * 2 - this.heading;
-        }
-        this._mesh.rotation.y = this.heading + Math.PI;
+        this.turningRight = true;
+    }
+
+    rudderStraight() {
+        this.turningLeft = false;
+        this.turningRight = false;
     }
 
     trimLeft() {
@@ -123,16 +179,15 @@ export default class Boat {
     }
 
     accelerate() {
-        this._speed += 0.002;
-        if (this._speed > 0.15) {
-            this._speed = 0.15;
-        }
+        this.accelerating = true;
     }
 
     decelerate() {
-        this._speed -= 0.002;
-        if (this._speed < 0) {
-            this._speed = 0;
-        }
+        this.decelerating = true;
+    }
+
+    letGo() {
+        this.accelerating = false;
+        this.decelerating = false;
     }
 }

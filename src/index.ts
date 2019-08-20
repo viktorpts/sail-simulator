@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { makeWaves, makeTerrain, makeSea, makeCompass } from './models/modelMaker';
 import Boat from './models/Boat';
-import { deltaFromAngle, generateHeight } from './util';
+import { deltaFromAngle, generateHeight, print } from './util';
 import { Input } from './CtrlScheme';
-import { WORLD_HSEGMENTS, WORLD_VSEGMENTS} from './constants';
+import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, STEP_SIZE } from './constants';
 
 function main() {
     const keys: any = {
@@ -86,24 +86,32 @@ function main() {
         }
     }
 
+    let lastUpdate = performance.now();
+    let delta = 0;
+    requestAnimationFrame(render);
+
     function render(time: number) {
-        processInput(camera, cameraPosition, keys, boat);
+        delta += time - lastUpdate;
+        lastUpdate = time;
         time *= 0.001;  // convert time to seconds
 
-        waves.update(time);
-        boat.update(time);
-        boatSound.volume = boat.speed * 0.75;
+        while (delta >= STEP_SIZE) {
+            delta -= STEP_SIZE;
+            processInput(camera, cameraPosition, keys, boat);
 
-        light.target.position.x = boat.mesh.position.x;
-        light.target.position.z = boat.mesh.position.z;
-        light.position.x = light.target.position.x + 5;
-        light.position.z = light.target.position.z - 10;
+            waves.update(time);
+            boat.update(time);
+            boatSound.volume = boat.speed * 0.75;
+
+            light.target.position.x = boat.mesh.position.x;
+            light.target.position.z = boat.mesh.position.z;
+            light.position.x = light.target.position.x + 5;
+            light.position.z = light.target.position.z - 10;
+        }
 
         renderer.render(scene, camera);
-
         requestAnimationFrame(render);
     }
-    requestAnimationFrame(render);
 
 }
 
@@ -126,15 +134,17 @@ function processInput(camera: THREE.PerspectiveCamera, cameraPosition: any, keys
     // Boat controls
     if (keys[Input.TurnLeft]) {
         boat.turnLeft();
-    }
-    if (keys[Input.TurnRight]) {
+    } else if (keys[Input.TurnRight]) {
         boat.turnRight();
+    } else {
+        boat.rudderStraight();
     }
     if (keys[Input.MoreSails]) {
         boat.accelerate();
-    }
-    if (keys[Input.ReefSails]) {
+    } else if (keys[Input.ReefSails]) {
         boat.decelerate();
+    } else {
+        boat.letGo();
     }
     if (keys[Input.TrimLeft]) {
         boat.trimLeft();
