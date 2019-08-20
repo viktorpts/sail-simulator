@@ -43,6 +43,9 @@ function main() {
         processInput(keys, scene.actor);
 
         delta += time - lastUpdate;
+        if (delta > 10 * STEP_SIZE) {
+            delta = 10 * STEP_SIZE;
+        }
         lastUpdate = time;
         time *= 0.001;  // convert time to seconds
         while (delta >= STEP_SIZE) {

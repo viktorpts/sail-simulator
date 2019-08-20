@@ -55,7 +55,7 @@ export default class Boat {
         this.updateSails();
         this.updateIdle(time);
 
-        print(`Heading: ${(this.heading / Math.PI * 180).toFixed(0)}\nSpeed: ${(this._speed * maxSpeed).toFixed(1)} knots (${(this._speed * 100).toFixed(0)}%)`);
+        print(`Heading: ${(this.heading / Math.PI * 180).toFixed(0)}\nSpeed: ${(this._speed * maxSpeed * 1.94384).toFixed(1)} knots (${(this._speed * 100).toFixed(0)}%)`);
     }
 
     private updateDirection() {
