@@ -1,6 +1,7 @@
 import { makeBoat, makeMainsail, makeHeadsail } from './modelMaker';
 import { deltaFromAngle, print } from '../util';
 import * as THREE from 'three';
+import { WORLD_WIDTH, WORLD_HEIGHT } from '../constants';
 
 
 const minTurnRate = Math.PI / 2000;
@@ -66,8 +67,8 @@ export default class Boat {
     }
 
     private checkCollision(x: number, y: number): boolean {
-        const mapX = Math.round(this.world.width * 0.5 - 0.5 + (x / 2000 * this.world.width));
-        const mapY = Math.round(this.world.height * 0.5 - 0.5 + (y / 2000 * this.world.height));
+        const mapX = Math.round(this.world.width * 0.5 - 0.5 + (x / WORLD_WIDTH * this.world.width));
+        const mapY = Math.round(this.world.height * 0.5 - 0.5 + (y / WORLD_HEIGHT * this.world.height));
         if (this.heighMap[mapX + mapY * this.world.width] >= 76) {
             return true;
         } else {
@@ -79,8 +80,8 @@ export default class Boat {
         if (x != this.lastMap.x || y != this.lastMap.y) {
             this.lastMap.x = x;
             this.lastMap.y = y;
-            const mapX = Math.round(this.world.width * 0.5 - 0.5 + (x / 2000 * this.world.width));
-            const mapY = Math.round(this.world.height * 0.5 - 0.5 + (y / 2000 * this.world.height));
+            const mapX = Math.round(this.world.width * 0.5 - 0.5 + (x / WORLD_WIDTH * this.world.width));
+            const mapY = Math.round(this.world.height * 0.5 - 0.5 + (y / WORLD_HEIGHT * this.world.height));
             const ctx = (<HTMLCanvasElement>document.getElementById('map')).getContext('2d');
             ctx.fillStyle = color;
             ctx.fillRect(mapX, mapY, 1, 1);

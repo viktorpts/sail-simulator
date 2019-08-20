@@ -3,6 +3,7 @@ import { makeWaves, makeTerrain, makeSea, makeCompass } from './models/modelMake
 import Boat from './models/Boat';
 import { deltaFromAngle, generateHeight } from './util';
 import { Input } from './CtrlScheme';
+import { WORLD_HSEGMENTS, WORLD_VSEGMENTS} from './constants';
 
 function main() {
     const keys: any = {
@@ -70,14 +71,12 @@ function main() {
 
     scene.add(makeCompass());
 
-    const worldWidth = 512;
-    const worldDepth = 512;
     const z = 152;
-    const data = generateHeight(worldWidth, worldDepth, z);
-    const terrain = makeTerrain(data, worldWidth, worldDepth);
-    const boat = new Boat(data, worldWidth, worldDepth);
+    const data = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, z);
+    const terrain = makeTerrain(data, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
+    const boat = new Boat(data, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
     const waves = makeWaves();
-    const sea = makeSea(data, worldWidth, worldDepth);
+    const sea = makeSea(data, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
     scene.add(boat.mesh);
     scene.add(terrain);
     scene.add(sea);

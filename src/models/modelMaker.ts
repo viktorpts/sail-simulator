@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import MeshBuilder from './MeshBuilder';
 import { generateHeight } from '../util';
+import { WORLD_WIDTH, WORLD_HEIGHT } from '../constants';
 
 
 export function makeBoat(color: number) {
@@ -138,13 +139,13 @@ export function makeWaves() {
 }
 
 export function makeSea(data: Int16Array, width: number, height: number) {
-    var geometry = new THREE.PlaneBufferGeometry(2000, 2000, 16, 16);
+    var geometry = new THREE.PlaneBufferGeometry(WORLD_WIDTH, WORLD_HEIGHT, 16, 16);
     geometry.rotateX(- Math.PI / 2);
-    
+
     const texture = new THREE.CanvasTexture(generateTexture(data, width, height));
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
-    
+
     const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
     mesh.position.y = -0.1;
 
@@ -198,7 +199,7 @@ export function makeSea(data: Int16Array, width: number, height: number) {
 }
 
 export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: number) {
-    var geometry = new THREE.PlaneBufferGeometry(2000, 2000, worldWidth - 1, worldDepth - 1);
+    var geometry = new THREE.PlaneBufferGeometry(WORLD_WIDTH, WORLD_HEIGHT, worldWidth - 1, worldDepth - 1);
     geometry.rotateX(- Math.PI / 2);
     var vertices = <Array<number>>(<THREE.BufferAttribute>geometry.attributes.position).array;
     for (var i = 0, j = 0, l = vertices.length; i < l; i++ , j += 3) {
@@ -241,7 +242,7 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
             vector3.normalize();
             shade = vector3.dot(sun);
             const heightModifier = (0.5 + data[j] * 0.007);
-            
+
             if (data[j] <= 74) {
                 //*
                 imageData[i] = 28;
