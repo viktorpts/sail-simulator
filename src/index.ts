@@ -4,26 +4,13 @@ import Boat from './models/Boat';
 import { deltaFromAngle, generateHeight, print } from './util';
 import { Input } from './CtrlScheme';
 import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, STEP_SIZE } from './constants';
+import TrackingCamera from './models/TrackingCamera';
 
 function main() {
-    const keys: any = {
-        [Input.Left]: false,
-        [Input.Right]: false,
-        [Input.Up]: false,
-        [Input.Down]: false,
-    };
-    const cameraPosition = {
-        angle: Math.PI / 3,
-        distance: 10,
-        height: 5
-    };
+    const keys: any = {};
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     document.addEventListener('keydown', (e) => keys[e.code] = true);
     document.addEventListener('keyup', (e) => keys[e.code] = false);
-    document.addEventListener('wheel', (e) => zoom(cameraPosition, e.deltaY));
-    document.addEventListener('mousedown', e => dragClick(e, keys, cameraPosition));
-    document.addEventListener('mouseup', (e) => keys.mouse = false);
-    document.addEventListener('mousemove', (e) => dragRotate(e, keys.mouse, cameraPosition));
 
     const seaAmbience = document.createElement('audio');
     const seaAmbienceSource = document.createElement('source');
@@ -44,13 +31,6 @@ function main() {
 
     const renderer = new THREE.WebGLRenderer({ canvas });
     renderer.shadowMap.enabled = true;
-
-    const fov = 75;
-    const aspect = 4 / 3;
-    const near = 0.1;
-    const far = 1000;
-    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.y = 5;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xaaccff);
@@ -88,6 +68,15 @@ function main() {
 
     let lastUpdate = performance.now();
     let delta = 0;
+
+    const camera = new TrackingCamera(boat.mesh);
+    document.addEventListener('wheel', camera.onWheel.bind(camera));
+    document.addEventListener('mousedown', camera.onMouseDown.bind(camera));
+    document.addEventListener('mouseup', camera.onMouseUp.bind(camera));
+    document.addEventListener('mousemove', camera.onMouseMove.bind(camera));
+    camera.dragRotate(Math.PI / 3);
+    camera.dragElevate(Math.PI/ 4);
+
     requestAnimationFrame(render);
 
     function render(time: number) {
@@ -97,7 +86,7 @@ function main() {
 
         while (delta >= STEP_SIZE) {
             delta -= STEP_SIZE;
-            processInput(camera, cameraPosition, keys, boat);
+            processInput(keys, boat);
 
             waves.update(time);
             boat.update(time);
@@ -109,6 +98,8 @@ function main() {
             light.position.z = light.target.position.z - 10;
         }
 
+        camera.update();
+
         renderer.render(scene, camera);
         requestAnimationFrame(render);
     }
@@ -117,20 +108,7 @@ function main() {
 
 main();
 
-function processInput(camera: THREE.PerspectiveCamera, cameraPosition: any, keys: any, boat: Boat) {
-    if (keys[Input.Left]) {
-        cameraPosition.angle += Math.PI / 100;
-    }
-    if (keys[Input.Right]) {
-        cameraPosition.angle -= Math.PI / 100;
-    }
-    if (keys[Input.Up]) {
-        zoomIn(cameraPosition);
-    }
-    if (keys[Input.Down]) {
-        zoomOut(cameraPosition);
-    }
-
+function processInput(keys: any, boat: Boat) {
     // Boat controls
     if (keys[Input.TurnLeft]) {
         boat.turnLeft();
@@ -151,60 +129,5 @@ function processInput(camera: THREE.PerspectiveCamera, cameraPosition: any, keys
     }
     if (keys[Input.TrimRight]) {
         boat.trimRight();
-    }
-
-    const { x, z } = deltaFromAngle(cameraPosition);
-    camera.position.x = boat.mesh.position.x + x;
-    camera.position.z = boat.mesh.position.z + z;
-    camera.position.y = cameraPosition.height;
-    camera.lookAt(boat.mesh.position.x, 2, boat.mesh.position.z);
-}
-
-function zoom(cameraPosition: any, deltaY: number) {
-    if (deltaY < 0) {
-        zoomIn(cameraPosition);
-        zoomIn(cameraPosition);
-        zoomIn(cameraPosition);
-        zoomIn(cameraPosition);
-        zoomIn(cameraPosition);
-        zoomIn(cameraPosition);
-        zoomIn(cameraPosition);
-        zoomIn(cameraPosition);
-    } else {
-        zoomOut(cameraPosition);
-        zoomOut(cameraPosition);
-        zoomOut(cameraPosition);
-        zoomOut(cameraPosition);
-        zoomOut(cameraPosition);
-        zoomOut(cameraPosition);
-        zoomOut(cameraPosition);
-        zoomOut(cameraPosition);
-    }
-}
-
-function zoomIn(cameraPosition: any) {
-    cameraPosition.distance -= 0.05 + Number((cameraPosition.distance / 150).toFixed(2));
-}
-
-function zoomOut(cameraPosition: any) {
-    cameraPosition.distance += 0.05 + Number((cameraPosition.distance / 150).toFixed(2));
-}
-
-function dragClick(e: MouseEvent, keys: any, cameraPosition: any) {
-    keys.mouse = true;
-    cameraPosition.mouseX = e.clientX;
-    cameraPosition.mouseY = e.clientY;
-}
-
-function dragRotate(e: MouseEvent, mode: boolean, cameraPosition: any) {
-    if (mode) {
-        const deltaX = cameraPosition.mouseX - e.clientX;
-        cameraPosition.angle += Math.PI / 500 * deltaX;
-        cameraPosition.mouseX = e.clientX;
-
-        const deltaY = cameraPosition.mouseY - e.clientY;
-        cameraPosition.height -= deltaY / 5;
-        cameraPosition.mouseY = e.clientY;
-
     }
 }
