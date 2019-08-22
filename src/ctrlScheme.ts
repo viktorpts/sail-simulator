@@ -6,7 +6,7 @@ export enum Input {
     TurnLeft = 'KeyA',
     TurnRight = 'KeyD',
     MoreSails = 'KeyW',
-    ReefSails = 'KeyS',
+    LessSails = 'KeyS',
     TrimLeft = 'KeyQ',
     TrimRight = 'KeyE'
 }

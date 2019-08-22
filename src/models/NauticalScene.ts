@@ -12,6 +12,7 @@ export default class NauticalScene extends Scene {
     private _actor: Boat;
     private waves: { mesh: Mesh, update: Function, getOffset: Function };
     private sun: NauticalSun;
+    private _heightMap: Int16Array;
 
     constructor() {
         super();
@@ -24,12 +25,12 @@ export default class NauticalScene extends Scene {
         this.add(makeCompass());
 
         const z = 152;
-        const data = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, z);
-        const terrain = makeTerrain(data, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
-        const boat = new Boat(data, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
+        this._heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, z);
+        const terrain = makeTerrain(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
+        const boat = new Boat();
         this._actor = boat;
         this.waves = makeWaves();
-        const sea = makeSea(data, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
+        const sea = makeSea(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
         this.add(boat.mesh);
         this.add(terrain);
         this.add(sea);
@@ -50,9 +51,13 @@ export default class NauticalScene extends Scene {
         return this._actor;
     }
 
+    get heightMap() {
+        return this._heightMap
+    }
+
     step(time: number) {
         this.waves.update(time);
-        this.actor.update(time);
+        //this.actor.update(time);
 
         this.sun.target.position.x = this.actor.mesh.position.x;
         this.sun.target.position.z = this.actor.mesh.position.z;
