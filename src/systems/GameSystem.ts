@@ -1,5 +1,7 @@
-import ComponentBlock from "../utilities/ComponentBlock";
+import ComponentMask from "../utilities/ComponentMask";
+import { ComponentBlock, ComponentGroup } from "../utilities/ComponentCollections";
 
 export default interface GameSystem {
-    (components: ComponentBlock): void;
+    parse (components: ComponentBlock[], groups: ComponentGroup[]): void;
+    mask: ComponentMask;
 }

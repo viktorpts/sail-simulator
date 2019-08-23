@@ -1,5 +1,5 @@
 import GameComponent from "./GameComponent";
-import Boat from "../models/Boat";
+import Boat from "../entities/Boat";
 
 export default class BoatAnimation extends GameComponent {
     model: Boat;

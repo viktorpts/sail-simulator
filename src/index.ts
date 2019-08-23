@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import Boat from './models/Boat';
+import Boat from './entities/Boat';
 import { Input } from './ctrlScheme';
 import { STEP_SIZE } from './constants';
-import NauticalScene from './models/NauticalScene';
-import TrackingCamera from './models/TrackingCamera';
+import NauticalScene from './entities/NauticalScene';
+import TrackingCamera from './entities/TrackingCamera';
 // Components
 import InputState from './components/InputState';
 import BoatControlState from './components/BoatControlState';
@@ -18,7 +18,7 @@ import IdGenerator from './utilities/IdGenerator';
 import { Sound } from './utilities/sound';
 import * as debug from './utilities/debugOutput';
 import * as keyboardInput from './utilities/keyboardInput';
-import ComponentBlock from './utilities/ComponentBlock';
+import ComponentIndex from './utilities/ComponentCollections';
 import { roll } from './utilities/helpers';
 import {updateMap} from './utilities/minimap';
 // Systems
@@ -30,7 +30,7 @@ import * as animateBoat from './systems/animateBoat';
 import * as follow from './systems/follow';
 import * as updateModel from './systems/updateModel';
 import Model from './components/Model';
-import { makeCompass } from './models/modelMaker';
+import { makeCompass } from './entities/modelMaker';
 
 function main() {
     // Setup
@@ -60,34 +60,34 @@ function main() {
     scene.add(arrowMesh);
     const aModel = new Model(arrowMesh, idGenerator.nextId(), arrowId);
 
-    const inputBlock: ComponentBlock = {
+    const inputBlock: ComponentIndex = {
         inputState: [keys],
         controlState: [controlState]
     };
-    const controlBlock: ComponentBlock = {
+    const controlBlock: ComponentIndex = {
         controlState: [controlState],
         movement: [movementState]
     };
-    const physicsBlock: ComponentBlock = {
+    const physicsBlock: ComponentIndex = {
         movement: [movementState],
         transform: [transform],
         position: [position],
         controlState: [controlState],
         terrain: [new TerrainCollider(scene.heightMap, idGenerator.nextId(), boatId)]
     };
-    const transformBlock: ComponentBlock = {
+    const transformBlock: ComponentIndex = {
         transform: [transform],
         position: [position]
     };
-    const modelBlock: ComponentBlock = {
+    const modelBlock: ComponentIndex = {
         model: [boatModel, aModel],
         position: [position, aPosition]
     };
-    const followBlock: ComponentBlock = {
+    const followBlock: ComponentIndex = {
         follower: [follower],
         position: [aPosition]
     }
-    const animationBlock: ComponentBlock = {
+    const animationBlock: ComponentIndex = {
         position: [position],
         model: [boatAnimation],
         movement: [movementState]
