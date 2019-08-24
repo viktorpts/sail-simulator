@@ -18,7 +18,7 @@ import IdGenerator from './utilities/IdGenerator';
 import { Sound } from './utilities/sound';
 import * as debug from './utilities/debugOutput';
 import * as keyboardInput from './utilities/keyboardInput';
-import ComponentIndex from './utilities/ComponentCollections';
+import ComponentIndex from './utilities/Collections';
 import { roll } from './utilities/helpers';
 import {updateMap} from './utilities/minimap';
 // Systems

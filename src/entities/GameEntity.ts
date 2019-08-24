@@ -1,9 +1,9 @@
-import { ComponentIndexByType } from "../utilities/Collections";
 import GameComponent from "../components/GameComponent";
+import { IndexByType } from "../utilities/Collections";
 
 export default abstract class GameEntity {
     readonly id: number;
-    readonly components: {[index: string]: GameComponent};
+    readonly components: IndexByType<GameComponent>;
 
     constructor(id: number) {
         this.id = id;

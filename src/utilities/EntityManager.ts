@@ -1,18 +1,15 @@
 import GameEntity from "../entities/GameEntity";
 import GameSystem from "../systems/GameSystem";
-import ComponentMask from "./ComponentMask";
-import { ComponentIndex, checkMask, ComponentBlock, ComponentGroup } from "./ComponentCollections";
+import ComponentMask, { applyMask } from "./ComponentMask";
+import { ComponentGroup, IndexByTypeAndId, IndexByType, IndexById } from "./Collections";
+import GameComponent from "../components/GameComponent";
 
 export default class EntityManager {
     entitites: GameEntity[];
-    components: ComponentBlock[];
-    componentIndex: ComponentIndex;
-
     systems: GameSystem[];
 
     constructor() {
         this.entitites = [];
-        this.components = [];
         this.systems = [];
     }
 
@@ -22,26 +19,45 @@ export default class EntityManager {
         // Feed component block and components groups into the system's parser
         // Profit
         for (let system of this.systems) {
-            system.parse(this.components, this.getComponentGroups(system.mask));
+            const index = this.getIndexes(system.mask);
+            system.parse(index.entities, index.components, index.componentsById);
         }
     }
 
-    getComponentGroups(mask: ComponentMask): ComponentGroup[] {
+    getIndexes(mask: ComponentMask) {
         // TODO: memoization, update when list of entities is modified (create, free)
-        const groups: ComponentGroup[] = [];
-        for (let entityId = 0; entityId < this.entitites.length; entityId++) {
-            if (checkMask(this.entitites[entityId], mask)) {
-                groups.push(this.getGroupFromEntity(this.entitites[entityId], mask));
+        const entities: IndexByTypeAndId<ComponentGroup> = {};
+        const components: IndexByType<GameComponent[]> = {};
+        const componentsById: IndexById<GameComponent> = {};
+
+        for (let entityIndex = 0; entityIndex < this.entitites.length; entityIndex++) {
+            const entity = this.entitites[entityIndex];
+            const groupIndex = applyMask(entity.components, mask);
+            for (let entityType of Object.getOwnPropertyNames(groupIndex)) {
+                if (entities.hasOwnProperty(entityType) === false) {
+                    entities[entityType] = {};
+                }
+                const componentGroup = groupIndex[entityType];
+                if (componentGroup !== null) {
+                    entities[entityType][entity.id] = componentGroup;
+                    for (let componentType of Object.getOwnPropertyNames(componentGroup)) {
+                        if (components.hasOwnProperty(componentType) === false) {
+                            components[componentType] = [];
+                        }
+                        const component = componentGroup[componentType];
+                        if (component !== null) {
+                            components[componentType].push(component);
+                            componentsById[component.id] = component;
+                        }
+                    }
+                }
             }
         }
-        return groups;
-    }
 
-    getGroupFromEntity(entity: GameEntity, mask: ComponentMask): ComponentGroup {
-        const group: ComponentGroup = [];
-        for (let componentType of Object.keys(mask)) {
-            group.push([this.componentIndex[componentType], entity.components[componentType]]);
-        }
-        return group;
+        return {
+            entities,
+            components,
+            componentsById
+        };
     }
 }
