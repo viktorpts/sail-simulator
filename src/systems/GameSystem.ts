@@ -1,7 +1,14 @@
 import ComponentMask from "../utilities/ComponentMask";
-import { ComponentBlock, ComponentGroup } from "../utilities/ComponentCollections";
+import { IndexByTypeAndId, ComponentGroup, IndexByType, IndexById } from "../utilities/Collections";
+import GameComponent from "../components/GameComponent";
 
 export default interface GameSystem {
-    parse (components: ComponentBlock[], groups: ComponentGroup[]): void;
-    mask: ComponentMask;
+    readonly mask: ComponentMask;
+    parse(
+        entities: IndexByTypeAndId<ComponentGroup>,
+        components: IndexByType<GameComponent[]>,
+        componentsById?: IndexById<GameComponent>
+    ): void;
 }
+
+
