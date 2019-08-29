@@ -14,7 +14,7 @@ import Position from './components/Position';
 import BoatAnimation from './components/BoatAnimation';
 import Follower from './components/Follower';
 // Utilities
-import IdGenerator from './utilities/IdGenerator';
+import Identity from './utilities/Identity';
 import { Sound } from './utilities/sound';
 import * as debug from './utilities/debugOutput';
 import * as keyboardInput from './utilities/keyboardInput';
@@ -22,9 +22,9 @@ import ComponentIndex from './utilities/Collections';
 import { roll } from './utilities/helpers';
 import {updateMap} from './utilities/minimap';
 // Systems
-import * as playerControl from './systems/playerControl';
+import * as playerControl from './systems/PlayerControl';
 import * as applyControl from './systems/applyControl';
-import * as applyPhysics from './systems/physics';
+import * as applyPhysics from './systems/Physics';
 import * as applyTransform from './systems/applyTransform';
 import * as animateBoat from './systems/animateBoat';
 import * as follow from './systems/follow';
@@ -38,27 +38,27 @@ function main() {
     const boatSound = initializeSound();
     const renderer = new THREE.WebGLRenderer({ canvas });
     renderer.shadowMap.enabled = true;
-    const idGenerator = new IdGenerator();
+    const idGenerator = new Identity();
     debug.initialize(document.getElementById('debug') as HTMLDivElement);
     const scene = new NauticalScene();
 
     // Components and systems
     // Boat
-    const boatId = idGenerator.nextId();
-    const keys = new InputState(idGenerator.nextId(), boatId);
-    const controlState = new BoatControlState(idGenerator.nextId(), boatId);
-    const movementState = new Movement(idGenerator.nextId(), boatId);
-    const position = new Position({ x: 0, y: 0, z: 0 }, { rotX: 0, rotY: 0, rotZ: 0 }, idGenerator.nextId(), boatId);
-    const transform = new Transform({ x: 0, y: 0, z: 0 }, { rotX: 0, rotY: 0, rotZ: 0 }, idGenerator.nextId(), boatId);
-    const boatModel = new Model(scene.actor.mesh, idGenerator.nextId(), boatId);
-    const boatAnimation = new BoatAnimation(scene.actor, idGenerator.nextId(), boatId);
+    const boatId = idGenerator.next();
+    const keys = new InputState(idGenerator.next(), boatId);
+    const controlState = new BoatControlState(idGenerator.next(), boatId);
+    const movementState = new Movement(idGenerator.next(), boatId);
+    const position = new Position({ x: 0, y: 0, z: 0 }, { rotX: 0, rotY: 0, rotZ: 0 }, idGenerator.next(), boatId);
+    const transform = new Transform({ x: 0, y: 0, z: 0 }, { rotX: 0, rotY: 0, rotZ: 0 }, idGenerator.next(), boatId);
+    const boatModel = new Model(scene.actor.mesh, idGenerator.next(), boatId);
+    const boatAnimation = new BoatAnimation(scene.actor, idGenerator.next(), boatId);
     // Arrow
-    const arrowId = idGenerator.nextId();
-    const aPosition = new Position({ x: 0, y: 0, z: 0 }, { rotX: 0, rotY: 0, rotZ: 0 }, idGenerator.nextId(), arrowId);
-    const follower = new Follower(position, idGenerator.nextId(), arrowId);
+    const arrowId = idGenerator.next();
+    const aPosition = new Position({ x: 0, y: 0, z: 0 }, { rotX: 0, rotY: 0, rotZ: 0 }, idGenerator.next(), arrowId);
+    const follower = new Follower(position, idGenerator.next(), arrowId);
     const arrowMesh = makeCompass();
     scene.add(arrowMesh);
-    const aModel = new Model(arrowMesh, idGenerator.nextId(), arrowId);
+    const aModel = new Model(arrowMesh, idGenerator.next(), arrowId);
 
     const inputBlock: ComponentIndex = {
         inputState: [keys],
@@ -73,7 +73,7 @@ function main() {
         transform: [transform],
         position: [position],
         controlState: [controlState],
-        terrain: [new TerrainCollider(scene.heightMap, idGenerator.nextId(), boatId)]
+        terrain: [new TerrainCollider(scene.heightMap, idGenerator.next(), boatId)]
     };
     const transformBlock: ComponentIndex = {
         transform: [transform],

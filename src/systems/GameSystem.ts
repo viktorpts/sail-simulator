@@ -7,7 +7,7 @@ export default interface GameSystem {
     readonly mask: ComponentMask;
     parse(
         entities: IndexByTypeAndId<ComponentGroup>,
-        components: IndexByType<GameComponent[]>,
+        components?: IndexByType<GameComponent[]>,
         componentsById?: IndexById<GameComponent>
     ): void;
 }

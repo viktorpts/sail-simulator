@@ -2,15 +2,39 @@ import GameSystem from "./GameSystem";
 import { Input } from "../ctrlScheme";
 import BoatControlState from "../components/BoatControlState";
 import InputState from "../components/InputState";
+import ComponentMask from "../utilities/ComponentMask";
+import GameComponent from "../components/GameComponent";
+import { EntityIndexById } from "../utilities/Collections";
 
+export default class PlayerControl implements GameSystem {
+    readonly mask: ComponentMask = {
+        actors: {
+            input: {
+                type: InputState,
+                required: true
+            },
+            control: {
+                type: BoatControlState,
+                required: true
+            }
+        }
+    }
 
-export const parse: GameSystem = function (components: { controlState: BoatControlState[], inputState: InputState[] }) {
-    for (let i = 0; i < components.controlState.length; i++) {
-        components.controlState[i].accelerating = components.inputState[i][Input.MoreSails];
-        components.controlState[i].decelerating = components.inputState[i][Input.LessSails];
-        components.controlState[i].turningLeft = components.inputState[i][Input.TurnLeft];
-        components.controlState[i].turningRight = components.inputState[i][Input.TurnRight];
-        components.controlState[i].trimmingLeft = components.inputState[i][Input.TrimLeft];
-        components.controlState[i].trimmingRight = components.inputState[i][Input.TrimRight];
+    parse(
+        entities: {
+            actors: EntityIndexById<{
+                input: InputState,
+                control: BoatControlState
+            }>
+        }
+    ) {
+        for (let actor of entities.actors) {
+            actor.control.accelerating = actor.input[Input.MoreSails];
+            actor.control.decelerating = actor.input[Input.LessSails];
+            actor.control.turningLeft = actor.input[Input.TurnLeft];
+            actor.control.turningRight = actor.input[Input.TurnRight];
+            actor.control.trimmingLeft = actor.input[Input.TrimLeft];
+            actor.control.trimmingRight = actor.input[Input.TrimRight];
+        }
     }
 }

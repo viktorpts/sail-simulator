@@ -6,8 +6,35 @@ import BoatControlState from "../components/BoatControlState";
 import { STEP_RATE, WORLD_WIDTH, WORLD_HEIGHT, WORLD_HSEGMENTS, WORLD_VSEGMENTS } from '../constants';
 import { deltaFromAngle } from '../utilities/helpers';
 import TerrainCollider from "../components/TerrainCollider";
+import ComponentMask from "../utilities/ComponentMask";
+import Force from "../components/Force";
 
-export const parse: GameSystem = function (components: { movement: Movement[], transform: Transform[], position: Position[], controlState: BoatControlState[], terrain: TerrainCollider[] }) {
+export default class Physics implements GameSystem {
+    readonly mask: ComponentMask = {
+        bodies: {
+            transform: {
+                type: Transform,
+                required: true
+            },
+            force: {
+                type: Force,
+                required: true
+            }
+        },
+        terrain: {
+            collider: {
+                type: TerrainCollider,
+                required: true
+            }
+        }
+    }
+
+    parse() {
+
+    }
+}
+
+export const parse = function (components: { movement: Movement[], transform: Transform[], position: Position[], controlState: BoatControlState[], terrain: TerrainCollider[] }) {
     for (let i = 0; i < components.movement.length; i++) {
         const movement = components.movement[i];
         const transform = components.transform[i];

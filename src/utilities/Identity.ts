@@ -1,13 +1,13 @@
-export default class IdGenerator {
+export default class Identity {
     private currentId: number;
 
     constructor(id = 1000) {
         this.currentId = id;
         
-        this.nextId = this.nextId.bind(this);
+        this.next = this.next.bind(this);
     }
 
-    nextId() {
+    next() {
         return ++(this.currentId);
     }
 }
