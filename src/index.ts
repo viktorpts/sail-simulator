@@ -18,13 +18,14 @@ import { updateMap } from './utilities/minimap';
 import { roll } from './utilities/helpers';
 import { makeArrow } from './render/modelMaker';
 import { Vector3 } from 'three';
+import { Sound } from './utilities/sound';
 
 function main() {
     THREE.Object3D.DefaultUp = new Vector3(0,0,1);
     // Setup
     debug.initialize(document.getElementById('debug') as HTMLDivElement);
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    //const boatSound = initializeSound();
+    const boatSound = initializeSound();
     const renderer = new THREE.WebGLRenderer({ canvas });
     renderer.shadowMap.enabled = true;
     const identity = new Identity();
@@ -51,6 +52,7 @@ function main() {
     const arrow = makeArrow();
     scene.addAndBind(arrow, boat);
     const actor = boat.components[Position.name] as Position;
+    const driver = boat.components[BoatLocomotion.name] as BoatLocomotion;
     let lastUpdate = performance.now();
     let delta = 0;
     requestAnimationFrame(render);
@@ -74,12 +76,12 @@ function main() {
             updateMap(actor.lon, actor.lat, '#fff');
         }
 
-        //boatSound.volume = (controlBlock.movement[0] as Movement).speed * 0.75;
+        boatSound.volume = (driver.forces.forward / driver.limits.forward) * 0.75;
         scene.camera.update();
 
         renderer.render(scene, scene.camera);
         debug.log('Orders', parseControls(keys, boat.components[BoatControlState.name] as BoatControlState));
-        debug.log('Movement', parseMovement(boat.components[BoatLocomotion.name] as BoatLocomotion));
+        debug.log('Movement', parseMovement(driver));
         debug.log('Position', parsePosition(actor));
         debug.print();
         requestAnimationFrame(render);
@@ -98,7 +100,6 @@ function initializeCamera(camera: TrackingCamera) {
     camera.dragElevate(Math.PI / 4);
 }
 
-/*
 function initializeSound() {
     const seaAmbience = new Sound('audio/sea.mp3');
     seaAmbience.volume = 0.25;
@@ -112,7 +113,6 @@ function initializeSound() {
 
     return boatSound;
 }
-*/
 
 function parseControls(keys: InputState, state: BoatControlState): string {
     const text = [

@@ -93,12 +93,12 @@ export default class NauticalScene extends Scene {
         this._actor.rudder.rotation.z = this._actorEntity.driver.forces.heading;
         
         this._actor.mainsail.rotation.z = -this._actorEntity.driver.trimAngle;
-        this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle;
+        this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle * 1.2;
         
         const multiplier = this._actorEntity.driver.trimAngle > 0 ? 1 : -1;
         const speedFraction = this._actorEntity.driver.forces.forward / this._actorEntity.driver.limits.forward;
         this._actor.mainsail.scale.x = Math.max(0.001, speedFraction) * multiplier;
-        this._actor.headsail.scale.x = Math.max(0.001, speedFraction) * multiplier;
+        this._actor.headsail.scale.x = this._actor.mainsail.scale.x;
         
         // Bobbing
         //*
