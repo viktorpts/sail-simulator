@@ -10,6 +10,7 @@ import ForceLimit from "../../components/ForceLimit";
 import { generateHeight } from "../../util";
 import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from "../../constants";
 import TerrainCollider from "../../components/TerrainCollider";
+import Terrain from "../../entities/Terrain";
 
 const turnRateDelta = Math.PI * 0.5;
 const maxTurnRate = Math.PI * 0.25;
@@ -42,7 +43,14 @@ export function createBoatDriver(identity: Identity, boatId: number) {
     return driver;
 }
 
-export function createTerrain(identity: Identity, parentId: number) {
+export function createTerrain(identity: Identity) {
+    const terrain = new Terrain(identity.next())
+    terrain.init(createTerrainCollider(identity, terrain.id));
+
+    return terrain;
+}
+
+export function createTerrainCollider(identity: Identity, parentId: number) {
     const heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED);
     return new TerrainCollider(heightMap, identity.next(), parentId);
 }

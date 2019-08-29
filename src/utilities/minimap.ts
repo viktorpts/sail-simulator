@@ -8,7 +8,7 @@ export function updateMap(x: number, y: number, color: string) {
         lastMap.x = x;
         lastMap.y = y;
         const mapX = Math.round(WORLD_HSEGMENTS * 0.5 - 0.5 + (x / WORLD_WIDTH * WORLD_HSEGMENTS));
-        const mapY = Math.round(WORLD_VSEGMENTS * 0.5 - 0.5 + (y / WORLD_HEIGHT * WORLD_VSEGMENTS));
+        const mapY = Math.round(WORLD_VSEGMENTS * 0.5 - 0.5 - (y / WORLD_HEIGHT * WORLD_VSEGMENTS));
         const ctx = (<HTMLCanvasElement>document.getElementById('map')).getContext('2d');
         ctx.fillStyle = color;
         ctx.fillRect(mapX, mapY, 1, 1);

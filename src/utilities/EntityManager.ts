@@ -1,7 +1,7 @@
 import GameEntity from "../entities/GameEntity";
 import GameSystem from "../systems/GameSystem";
 import ComponentMask, { applyMask } from "./ComponentMask";
-import { ComponentGroup, IndexByTypeAndId, IndexByType, IndexById } from "./Collections";
+import { ComponentGroup, IndexByTypeAndId, IndexByType, IndexById, EntityIndexById } from "./Collections";
 import GameComponent from "../components/GameComponent";
 
 export default class EntityManager {
@@ -35,7 +35,7 @@ export default class EntityManager {
             const groupIndex = applyMask(entity.components, mask);
             for (let entityType of Object.getOwnPropertyNames(groupIndex)) {
                 if (entities.hasOwnProperty(entityType) === false) {
-                    entities[entityType] = {};
+                    entities[entityType] = new EntityIndexById<ComponentGroup>();
                 }
                 const componentGroup = groupIndex[entityType];
                 if (componentGroup !== null) {

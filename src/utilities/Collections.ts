@@ -49,9 +49,13 @@ export type IndexById<T> = {
 export class EntityIndexById<T> implements Iterable<T> {
     [index: string]: T;
 
-    constructor(index: {[index: string]: T}) {
-        for (let name of Object.getOwnPropertyNames(index)) {
-            this[name] = index[name];
+    constructor();
+    constructor(index: { [index: string]: T });
+    constructor(index?: { [index: string]: T }) {
+        if (index !== undefined) {
+            for (let name of Object.getOwnPropertyNames(index)) {
+                this[name] = index[name];
+            }
         }
     }
 

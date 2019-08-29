@@ -3,7 +3,6 @@ import { Input } from "../ctrlScheme";
 import BoatControlState from "../components/BoatControlState";
 import InputState from "../components/InputState";
 import ComponentMask from "../utilities/ComponentMask";
-import GameComponent from "../components/GameComponent";
 import { EntityIndexById } from "../utilities/Collections";
 
 export default class PlayerControl implements GameSystem {

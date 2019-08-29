@@ -1,19 +1,19 @@
 import { expect } from 'chai';
 import 'mocha';
 import Physics from '../../src/systems/Physics';
-import { createBoatDriver, createTerrain } from '../../src/utilities/factories/entityFactory';
+import { createBoatDriver, createTerrainCollider } from '../../src/utilities/factories/entityFactory';
 import Identity from '../../src/utilities/Identity';
 import { EntityIndexById } from '../../src/utilities/Collections';
 import Position from '../../src/components/Position';
 import BoatLocomotion from '../../src/components/BoatLocomotion';
 import { parse } from 'ts-node';
-import { STEP_RATE } from '../../src/constants';
+import { STEP_SIZE } from '../../src/constants';
 
 describe('Physics System', () => {
     const identity = new Identity();
     const terrain = new EntityIndexById({
         1000: {
-            collider: createTerrain(identity, 1000)
+            collider: createTerrainCollider(identity, 1000)
         }
     });
 
@@ -158,7 +158,7 @@ describe('Physics System', () => {
         it('can turn counterclockwise (decreasing heading)', () => {
             const howManySteps = 10;
 
-            position.heading = Math.PI * 2 - driver.limits.heading * STEP_RATE; // Decrease past 0 initially to prevent clamping errors
+            position.heading = Math.PI * 2 - driver.limits.heading * STEP_SIZE; // Decrease past 0 initially to prevent clamping errors
             driver.forces.heading = -driver.limits.heading;
 
             let prevHeading = position.heading;
@@ -172,27 +172,27 @@ describe('Physics System', () => {
         it('clamps heading while turning clockwise', () => {
             const howManySteps = 10;
 
-            position.heading = Math.PI * 2 - driver.limits.heading * STEP_RATE;
+            position.heading = Math.PI * 2 - driver.limits.heading * STEP_SIZE;
             driver.forces.heading = driver.limits.heading;
 
             for (let i = 0; i < howManySteps; i++) {
                 item.parse({ bodies, terrain });
             }
 
-            expect(position.heading).to.be.closeTo(driver.limits.heading * STEP_RATE * (howManySteps - 1), 4);
+            expect(position.heading).to.be.closeTo(driver.limits.heading * STEP_SIZE * (howManySteps - 1), 0.0001);
         });
 
         it('clamps heading while turning counterclockwise', () => {
             const howManySteps = 10;
 
-            position.heading = driver.limits.heading * STEP_RATE;
+            position.heading = driver.limits.heading * STEP_SIZE;
             driver.forces.heading = -driver.limits.heading;
 
             for (let i = 0; i < howManySteps; i++) {
                 item.parse({ bodies, terrain });
             }
 
-            expect(position.heading).to.be.closeTo(Math.PI * 2 - driver.limits.heading * STEP_RATE * (howManySteps - 1), 4);
+            expect(position.heading).to.be.closeTo(Math.PI * 2 - driver.limits.heading * STEP_SIZE * (howManySteps - 1), 0.0001);
         });
 
     });

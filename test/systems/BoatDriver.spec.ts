@@ -6,7 +6,7 @@ import { createBoatDriver } from '../../src/utilities/factories/entityFactory';
 import Identity from '../../src/utilities/Identity';
 import { EntityIndexById } from '../../src/utilities/Collections';
 import BoatLocomotion from '../../src/components/BoatLocomotion';
-import { STEP_RATE } from '../../src/constants';
+import { STEP_SIZE, TICK_RATE_PER_SEC } from '../../src/constants';
 
 describe('BoatDriver System', () => {
     const identity = new Identity();
@@ -75,11 +75,11 @@ describe('BoatDriver System', () => {
             for (let i = 0; i < howManySteps; i++) {
                 item.parse({ boats });
             }
-            expect(driver.forces.forward).to.be.closeTo(driver.rates.forward * howManySteps * STEP_RATE, 4);
+            expect(driver.forces.forward).to.be.closeTo(driver.rates.forward * howManySteps * STEP_SIZE, 0.0001);
         });
 
         it('can\'t accelerate past limit', () => {
-            const howManySteps = Math.ceil((driver.limits.forward / driver.rates.forward) * (1 / STEP_RATE));
+            const howManySteps = Math.ceil((driver.limits.forward / driver.rates.forward) * (TICK_RATE_PER_SEC));
 
             control.accelerating = true;
             for (let i = 0; i < howManySteps; i++) {
@@ -98,7 +98,8 @@ describe('BoatDriver System', () => {
             for (let i = 0; i < howManySteps; i++) {
                 item.parse({ boats });
             }
-            expect(driver.forces.heading).to.be.closeTo(-driver.rates.heading * howManySteps * STEP_RATE, 4);
+            console.log(driver.forces.heading);
+            expect(driver.forces.heading).to.be.closeTo(-driver.rates.heading * howManySteps * STEP_SIZE, 0.0001);
         });
 
         it('can turn right', () => {
@@ -108,7 +109,7 @@ describe('BoatDriver System', () => {
             for (let i = 0; i < howManySteps; i++) {
                 item.parse({ boats });
             }
-            expect(driver.forces.heading).to.be.closeTo(driver.rates.heading * howManySteps * STEP_RATE, 4);
+            expect(driver.forces.heading).to.be.closeTo(driver.rates.heading * howManySteps * STEP_SIZE, 0.0001);
         });
 
         it('can trim portside', () => {
@@ -118,7 +119,7 @@ describe('BoatDriver System', () => {
             for (let i = 0; i < howManySteps; i++) {
                 item.parse({ boats });
             }
-            expect(driver.trimAngle).to.be.closeTo(driver.trimRate * howManySteps * STEP_RATE, 4);
+            expect(driver.trimAngle).to.be.closeTo(driver.trimRate * howManySteps * STEP_SIZE, 0.0001);
         });
 
         it('can trim starboard', () => {
@@ -128,7 +129,7 @@ describe('BoatDriver System', () => {
             for (let i = 0; i < howManySteps; i++) {
                 item.parse({ boats });
             }
-            expect(driver.trimAngle).to.be.closeTo(-driver.trimRate * howManySteps * STEP_RATE, 4);
+            expect(driver.trimAngle).to.be.closeTo(-driver.trimRate * howManySteps * STEP_SIZE, 0.0001);
         });
     });
 
