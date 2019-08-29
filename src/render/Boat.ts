@@ -11,15 +11,15 @@ export default class Boat {
     constructor() {
         const hull = makeBoat(0x917833).mesh;
         this._rudder = makeRudder(0x917833).mesh;
-        this._rudder.position.y = 1;
-        this._rudder.position.z = -2.75;
+        this._rudder.position.z = 1;
+        this._rudder.position.y = -2.75;
         this._mainsail = makeMainsail().mesh;
-        this._mainsail.position.z = 1;
-        this._mainsail.position.y = 1.5;
+        this._mainsail.position.y = 1;
+        this._mainsail.position.z = 1.5;
         this._headsail = makeHeadsail().mesh;
-        this._headsail.position.z = 1;
-        this._headsail.position.y = 6.5;
-        this._headsail.rotation.x = - Math.PI / 6;
+        this._headsail.position.y = 1;
+        this._headsail.position.z = 6.5;
+        this._headsail.rotation.x = Math.PI / 6;
         this._mesh = new THREE.Group();
         this._mesh.add(hull, this._rudder, this._mainsail, this._headsail);
     }

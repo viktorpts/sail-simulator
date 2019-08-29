@@ -1,4 +1,4 @@
-import { Scene, Color, AmbientLight, Mesh, Object3D } from 'three';
+import { Scene, Color, AmbientLight, Mesh, Object3D, Vector3, Quaternion } from 'three';
 import { makeCompass, makeTerrain, makeWaves, makeSea } from './modelMaker';
 import Boat from './Boat';
 import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from '../constants';
@@ -27,8 +27,9 @@ export default class NauticalScene extends Scene {
         this.add(ambient);
         this.sun = new NauticalSun();
         this.add(this.sun, this.sun.target);
-
-        this.add(makeCompass());
+        const compass = makeCompass();
+        compass.position.z = 0.01;
+        this.add(compass);
 
         this._heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED);
         const terrain = makeTerrain(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
@@ -36,6 +37,7 @@ export default class NauticalScene extends Scene {
         this._actor = boat;
         this.waves = makeWaves();
         const sea = makeSea(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
+        sea.position.z = -0.1;
         this.add(boat.mesh);
         this.add(terrain);
         this.add(sea);
@@ -66,9 +68,9 @@ export default class NauticalScene extends Scene {
         this.updateEntities(time);
 
         this.sun.target.position.x = this.actor.mesh.position.x;
-        this.sun.target.position.z = this.actor.mesh.position.z;
+        this.sun.target.position.y = this.actor.mesh.position.y;
         this.sun.position.x = this.sun.target.position.x + 5;
-        this.sun.position.z = this.sun.target.position.z - 10;
+        this.sun.position.y = this.sun.target.position.y + 10;
     }
 
     bindActorToEntity(boat: PlayerBoat) {
@@ -79,14 +81,37 @@ export default class NauticalScene extends Scene {
     }
 
     private updateActor(time: number) {
+        this._actor.mesh.rotation.x = 0;
+        this._actor.mesh.rotation.y = 0;
+        //this._actor.mesh.rotation.z = 0;
+
         this._actor.mesh.position.x = this._actorEntity.position.lon;
-        this._actor.mesh.position.z = -this._actorEntity.position.lat;
-        this._actor.mesh.rotation.y = Math.PI - this._actorEntity.position.heading;
+        this._actor.mesh.position.y = this._actorEntity.position.lat;
+        this._actor.mesh.rotation.z = -this._actorEntity.position.heading;
+        //this._actor.mesh.rotateOnAxis(new Vector3(0, 0, 1), Math.PI * 2 - this._actorEntity.position.heading);
+        
+        this._actor.rudder.rotation.z = this._actorEntity.driver.forces.heading;
+        
+        this._actor.mainsail.rotation.z = -this._actorEntity.driver.trimAngle;
+        this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle;
+        
+        const multiplier = this._actorEntity.driver.trimAngle > 0 ? 1 : -1;
+        const speedFraction = this._actorEntity.driver.forces.forward / this._actorEntity.driver.limits.forward;
+        this._actor.mainsail.scale.x = Math.max(0.001, speedFraction) * multiplier;
+        this._actor.headsail.scale.x = Math.max(0.001, speedFraction) * multiplier;
+        
+        // Bobbing
+        //*
+        this._actor.mesh.position.z = (Math.sin(time * 2 / 3) / 10) - 0.3;
+        //this._actor.mesh.rotation.y = Math.sin(time) / 10 + (Math.PI / 3 - Math.abs(this._actor.mainsail.rotation.z)) * 0.4 * speedFraction * (this._actor.mainsail.rotation.z < 0 ? -1 : 1);
+        const rotY = Math.sin(time) / 10 + (Math.PI / 3 - Math.abs(this._actor.mainsail.rotation.z)) * 0.4 * speedFraction * (this._actor.mainsail.rotation.z < 0 ? -1 : 1);
+        this._actor.mesh.rotateOnAxis(new Vector3(0, 1, 0), rotY);
+        //*/
     }
 
     addAndBind(object: Object3D, entity: GameEntity) {
         this.add(object);
-        this._gameEntities.push({object, entity});
+        this._gameEntities.push({ object, entity });
     }
 
     private updateEntities(time: number) {
@@ -94,12 +119,12 @@ export default class NauticalScene extends Scene {
             const position = pair.entity.components[Position.name] as Position;
 
             pair.object.position.x = position.x;
-            pair.object.position.z = -position.y;
-            pair.object.position.y = position.z;
+            pair.object.position.y = position.y;
+            pair.object.position.z = position.z;
 
             pair.object.rotation.x = position.rotX;
-            pair.object.rotation.y = Math.PI - position.rotZ;
-            pair.object.rotation.z = position.rotY;
+            pair.object.rotation.y = position.rotY;
+            pair.object.rotation.z = -position.rotZ;
         }
     }
 }

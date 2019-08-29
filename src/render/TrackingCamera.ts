@@ -20,16 +20,16 @@ export default class TrackingCamera extends PerspectiveCamera {
 
     update() {
         const x = this.distance * Math.sin(this.direction) * Math.sin(this.elevation);
-        const z = this.distance * Math.cos(this.direction) * Math.sin(this.elevation);
-        const y = this.distance * Math.cos(this.elevation);
+        const y = this.distance * Math.cos(this.direction) * Math.sin(this.elevation);
+        const z = this.distance * Math.cos(this.elevation);
         this.position.x = this.target.position.x + x;
-        this.position.y = y + 2;
-        this.position.z = this.target.position.z + z;
-        this.lookAt(this.target.position.x, 2, this.target.position.z);
+        this.position.y = this.target.position.y + y;
+        this.position.z = z + 2;
+        this.lookAt(this.target.position.x, this.target.position.y, 2);
     }
 
     dragRotate(angle: number) {
-        this.direction += angle;
+        this.direction -= angle;
         if (this.direction > Math.PI * 2) {
             this.direction = this.direction - Math.PI * 2;
         } else if (this.direction < 0) {

@@ -20,7 +20,7 @@ import { makeArrow } from './render/modelMaker';
 import { Vector3 } from 'three';
 
 function main() {
-    //THREE.Object3D.DefaultUp = new Vector3(0,0,1);
+    THREE.Object3D.DefaultUp = new Vector3(0,0,1);
     // Setup
     debug.initialize(document.getElementById('debug') as HTMLDivElement);
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;

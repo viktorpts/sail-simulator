@@ -11,6 +11,6 @@ export default class NauticalSun extends DirectionalLight {
         this.shadow.mapSize.height = 1024;
         this.shadow.mapSize.width = 1024;
         this.castShadow = true;
-        this.position.set(-10, 10, 40);
+        this.position.set(10, 40, 10);
     }
 }

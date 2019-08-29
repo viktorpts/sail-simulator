@@ -7,21 +7,21 @@ import { WORLD_WIDTH, WORLD_HEIGHT } from '../constants';
 export function makeBoat(color: number) {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color }));
     // hull vertices
-    model.addVertex(0, 1.3, 4);  // 0
-    model.addVertex(1, 1, 1.5);  // 1
-    model.addVertex(-1, 1, 1.5);  // 2
-    model.addVertex(1, 1, -1.5);  // 3
-    model.addVertex(-1, 1, -1.5);  // 4
-    model.addVertex(0.5, 1.2, -3);  // 5
-    model.addVertex(-0.5, 1.2, -3);  // 6
-    model.addVertex(0, 0, 2);  // 7
-    model.addVertex(0, 0, -2);  // 8
+    model.addVertex(0, 4, 1.3);  // 0
+    model.addVertex(-1, 1.5, 1);  // 1
+    model.addVertex(1, 1.5, 1);  // 2
+    model.addVertex(-1, -1.5, 1);  // 3
+    model.addVertex(1, -1.5, 1);  // 4
+    model.addVertex(-0.5, -3, 1.2);  // 5
+    model.addVertex(0.5, -3, 1.2);  // 6
+    model.addVertex(0, 2, 0);  // 7
+    model.addVertex(0, -2, 0);  // 8
     // mast vertices
-    model.addVertex(-0.1, 1, 1);  // 9
-    model.addVertex(0, 1, 0.9);  // 10
-    model.addVertex(0.1, 1, 1);  // 11
-    model.addVertex(0, 1, 1.1);  // 12
-    model.addVertex(0, 7, 1);  // 13
+    model.addVertex(0.1, 1, 1);  // 9
+    model.addVertex(0, 0.9, 1);  // 10
+    model.addVertex(-0.1, 1, 1);  // 11
+    model.addVertex(0, 1.1, 1);  // 12
+    model.addVertex(0, 1, 7);  // 13
 
     // deck
     model.addFace(0, 1, 2);
@@ -56,9 +56,9 @@ export function makeBoat(color: number) {
 export function makeRudder(color: number) {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color }));
     model.addVertex(0, 0, 0);    // 0
-    model.addVertex(0, 0, -0.5); // 1
+    model.addVertex(0, -0.5, 0); // 1
     model.addVertex(0, -1, -1);  // 2
-    model.addVertex(0, -1, 0);   // 3
+    model.addVertex(0, 0, -1);   // 3
 
     model.addFace(0, 1, 2);
     model.addFace(0, 2, 3);
@@ -73,12 +73,12 @@ export function makeRudder(color: number) {
 export function makeMainsail() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
     model.addVertex(0, 0, 0);             // 0 front bottom
-    model.addVertex(0, 4, 0);             // 1 front top
-    model.addVertex(0, 5, -1.5);          // 2 back top
-    model.addVertex(-0.75, 3.75, -1.875); // 3
-    model.addVertex(-1, 2.5, -2.25);      // 4
-    model.addVertex(-0.75, 1.25, -2.625); // 5
-    model.addVertex(0, 0, -3);            // 6 back bottom
+    model.addVertex(0, 0, 4);             // 1 front top
+    model.addVertex(0, -1.5, 5);          // 2 back top
+    model.addVertex(-0.75, -1.875, 3.75); // 3
+    model.addVertex(-1, -2.25, 2.5);      // 4
+    model.addVertex(-0.75, -2.625, 1.25); // 5
+    model.addVertex(0, -3, 0);            // 6 back bottom
 
     model.addFace(0, 1, 2);
     model.addFace(0, 2, 3);
@@ -99,13 +99,13 @@ export function makeMainsail() {
 
 export function makeHeadsail() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
-    model.addVertex(0, -6, 0);  // 0 front bottom
+    model.addVertex(0, 0, -6);  // 0 front bottom
     model.addVertex(0, 0, 0);  // 1 front top
-    model.addVertex(-0.6, -1.5, -0.7);  // 2
-    model.addVertex(-0.6, -3, -1.4);  // 3
-    model.addVertex(0, -4.5, -2.1);  // 4 back
-    model.addVertex(-0.2, -5, -1.4);  // 5
-    model.addVertex(-0.2, -5.5, -0.7);  // 6
+    model.addVertex(-0.6, -0.7, -1.5);  // 2
+    model.addVertex(-0.6, -1.4, -3);  // 3
+    model.addVertex(0, -2.1, -4.5);  // 4 back
+    model.addVertex(-0.2, -1.4, -5);  // 5
+    model.addVertex(-0.2, -0.7, -5.5);  // 6
 
     model.addFace(0, 1, 2);
     model.addFace(0, 2, 6);
@@ -130,12 +130,12 @@ export function makeWaves() {
     const geometry = new THREE.PlaneBufferGeometry(qxc, qxc, qxc, qxc);
     //const geometry = new THREE.BufferGeometry();
     //geometry.fromGeometry(new THREE.PlaneGeometry(qxc, qxc, qxc, qxc));
-    geometry.rotateX(- Math.PI / 2);
+    //geometry.rotateX(- Math.PI / 2);
     const position = <THREE.BufferAttribute>geometry.attributes.position;
     position.dynamic = true;
     for (let i = 1; i < position.count; i++) {
-        const y = 0.1 * (1 + Math.sin(i / 2));
-        position.setY(i, y);
+        const z = 0.1 * (1 + Math.sin(i / 2));
+        position.setZ(i, z);
     }
     geometry.computeVertexNormals();
     const material = new THREE.MeshStandardMaterial({ color: 0x1c2f63, transparent: true, opacity: 0.5 });
@@ -150,18 +150,18 @@ export function makeWaves() {
                 const i = row * (qxc + 1) + col;
 
                 if (col == qxc) {
-                    const y = position.getY(i - col);
-                    position.setY(i, y);
+                    const z = position.getZ(i - col);
+                    position.setZ(i, z);
                 } else if (row == qxc) {
-                    const y = position.getY(i - row * (qxc + 1));
-                    position.setY(i, y);
+                    const z = position.getZ(i - row * (qxc + 1));
+                    position.setZ(i, z);
                 } else {
                     const mainWave = (1 + Math.sin(i / 5 + (time * 3 + i))) * 0.5;
                     const secondaryWave = (1 + Math.sin(i / 5 + (time * 10 + i))) * 0.5;
                     const xWave = (1 + Math.sin(time * 10 + col)) * 0.5;
                     const yWave = (1 + Math.sin(time * 10 + row)) * 0.5;
-                    const y = mainWave * 0.1 + secondaryWave * 0.05 + xWave * 0.05 + yWave * 0.05;
-                    position.setY(i, y);
+                    const z = mainWave * 0.1 + secondaryWave * 0.05 + xWave * 0.05 + yWave * 0.05;
+                    position.setZ(i, z);
                 }
             }
         }
@@ -169,10 +169,10 @@ export function makeWaves() {
         position.needsUpdate = true;
     }
 
-    function getOffset(x: number, z: number) {
+    function getOffset(x: number, y: number) {
         const newMesh = new THREE.Mesh(geometry, material);
         newMesh.position.x += x * qxc;
-        newMesh.position.z += z * qxc;
+        newMesh.position.y += y * qxc;
         newMesh.receiveShadow = true;
         return newMesh
     }
@@ -180,7 +180,7 @@ export function makeWaves() {
 
 export function makeSea(data: Int16Array, width: number, height: number) {
     var geometry = new THREE.PlaneBufferGeometry(WORLD_WIDTH, WORLD_HEIGHT, 16, 16);
-    geometry.rotateX(- Math.PI / 2);
+    //geometry.rotateX(- Math.PI / 2);
 
     const texture = new THREE.CanvasTexture(generateTexture(data, width, height));
     texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -240,10 +240,10 @@ export function makeSea(data: Int16Array, width: number, height: number) {
 
 export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: number) {
     var geometry = new THREE.PlaneBufferGeometry(WORLD_WIDTH, WORLD_HEIGHT, worldWidth - 1, worldDepth - 1);
-    geometry.rotateX(- Math.PI / 2);
+    //geometry.rotateX(- Math.PI / 2);
     var vertices = <Array<number>>(<THREE.BufferAttribute>geometry.attributes.position).array;
     for (var i = 0, j = 0, l = vertices.length; i < l; i++ , j += 3) {
-        vertices[j + 1] = data[i] / 2;
+        vertices[j + 2] = data[i] / 2;
     }
     //geometry.computeVertexNormals();
 
@@ -252,7 +252,7 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
     texture.wrapT = THREE.ClampToEdgeWrapping;
 
     const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
-    mesh.position.y = -38;
+    mesh.position.z = -38;
 
     return mesh;
 
@@ -340,13 +340,13 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
 
 export function makeCompass() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xffffff }));
-    model.addVertex(0, 0, -5); // 0 Up
+    model.addVertex(0, 5, 0);  // 0 Up
     model.addVertex(-5, 0, 0); // 1 Left
-    model.addVertex(0, 0, 5); // 2 Down
-    model.addVertex(5, 0, 0); // 3 Right
+    model.addVertex(0, -5, 0); // 2 Down
+    model.addVertex(5, 0, 0);  // 3 Right
 
     // North
-    model.addVertex(0, 0, -15); // 4
+    model.addVertex(0, 15, 0); // 4
     model.addFace(1, 0, 4);
     model.addFace(3, 4, 0);
 
@@ -355,13 +355,13 @@ export function makeCompass() {
 
 export function makeArrow() {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xffffff }));
-    model.addVertex(0, 0, -5); // 0 Up
+    model.addVertex(0, 5, 0);  // 0 Up
     model.addVertex(-5, 0, 0); // 1 Left
-    model.addVertex(0, 0, 5); // 2 Down
-    model.addVertex(5, 0, 0); // 3 Right
+    model.addVertex(0, -5, 0); // 2 Down
+    model.addVertex(5, 0, 0);  // 3 Right
 
     // North
-    model.addVertex(0, 0, -15); // 4
+    model.addVertex(0, 15, 0); // 4
     model.addFace(1, 0, 4);
     model.addFace(3, 4, 0);
 
