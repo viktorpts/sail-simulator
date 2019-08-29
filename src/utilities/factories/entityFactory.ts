@@ -7,6 +7,9 @@ import Position from "../../components/Position";
 import Force from "../../components/Force";
 import ForceRate from "../../components/ForceRate";
 import ForceLimit from "../../components/ForceLimit";
+import { generateHeight } from "../../util";
+import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from "../../constants";
+import TerrainCollider from "../../components/TerrainCollider";
 
 const turnRateDelta = Math.PI * 0.5;
 const maxTurnRate = Math.PI * 0.25;
@@ -37,4 +40,9 @@ export function createBoatDriver(identity: Identity, boatId: number) {
     driver.maxTrimAngle = maxTrimAngle;
 
     return driver;
+}
+
+export function createTerrain(identity: Identity, parentId: number) {
+    const heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED);
+    return new TerrainCollider(heightMap, identity.next(), parentId);
 }

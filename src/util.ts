@@ -94,8 +94,10 @@ function getCoord(index: number, width: number) {
     return [x, y];
 }
 
+/*
 const debugDiv= document.getElementById('debug');
 
 export function print(data: string) {
     debugDiv.textContent = data;
 }
+*/

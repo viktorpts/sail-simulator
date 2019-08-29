@@ -55,8 +55,8 @@ function applyControl(control: BoatControlState, driver: BoatLocomotion) {
 
     // Trim
     if (control.trimmingLeft) {
-        driver.trimAngle = Math.max(driver.trimAngle - driver.trimRate * STEP_RATE, -driver.maxTrimAngle);
-    } else if (control.trimmingRight) {
         driver.trimAngle = Math.min(driver.trimAngle + driver.trimRate * STEP_RATE, driver.maxTrimAngle);
+    } else if (control.trimmingRight) {
+        driver.trimAngle = Math.max(driver.trimAngle - driver.trimRate * STEP_RATE, -driver.maxTrimAngle);
     }
 }

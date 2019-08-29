@@ -8,18 +8,46 @@ export default class Transform extends GameComponent {
     rotY: number;   // Roll
     rotZ: number;   // Yaw/Heading
 
+    /**
+     * Create origin Transform
+     * @param id Component ID
+     * @param entityId Parent Entity ID
+     */
+    constructor(id: number, entityId: number);
+    /**
+     * Create Transorm with position and rotation values
+     * @param position Position value
+     * @param rotation Rotation value 
+     * @param id Component ID
+     * @param entityId Parent Entity ID
+     */
     constructor(
         { x, y, z }: { x: number, y: number, z: number },
         { rotX, rotY, rotZ }: { rotX: number, rotY: number, rotZ: number },
         id: number, entityId: number
+    );
+    constructor(
+        position: any,
+        rotation: any,
+        id?: number, entityId?: number
     ) {
-        super(id, entityId);
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.rotX = rotX;
-        this.rotY = rotY;
-        this.rotZ = rotZ;
+        if (typeof position === 'number' && typeof rotation === 'number') {
+            super(position, rotation);
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+            this.rotX = 0;
+            this.rotY = 0;
+            this.rotZ = 0;
+        } else {
+            super(id, entityId);
+            this.x = position.x;
+            this.y = position.y;
+            this.z = position.z;
+            this.rotX = rotation.rotX;
+            this.rotY = rotation.rotY;
+            this.rotZ = rotation.rotZ;
+        }
     }
 
     /**

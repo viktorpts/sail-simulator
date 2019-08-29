@@ -1,7 +1,7 @@
 import { Scene, Color, AmbientLight, Mesh } from 'three';
 import { makeCompass, makeTerrain, makeWaves, makeSea } from './modelMaker';
 import Boat from './Boat';
-import { WORLD_HSEGMENTS, WORLD_VSEGMENTS } from '../constants';
+import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from '../constants';
 import { generateHeight } from '../util';
 import TrackingCamera from './TrackingCamera';
 import NauticalSun from "./NauticalSun";
@@ -24,8 +24,7 @@ export default class NauticalScene extends Scene {
 
         this.add(makeCompass());
 
-        const z = 152;
-        this._heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, z);
+        this._heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED);
         const terrain = makeTerrain(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
         const boat = new Boat();
         this._actor = boat;

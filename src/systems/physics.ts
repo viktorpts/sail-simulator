@@ -1,23 +1,23 @@
 import GameSystem from "./GameSystem";
-import Movement from "../components/Movement";
-import Transform from "../components/Transform";
 import Position from "../components/Position";
-import BoatControlState from "../components/BoatControlState";
 import { STEP_RATE, WORLD_WIDTH, WORLD_HEIGHT, WORLD_HSEGMENTS, WORLD_VSEGMENTS } from '../constants';
-import { deltaFromAngle } from '../utilities/helpers';
+import { deltaFromAngle, roll } from '../utilities/helpers';
 import TerrainCollider from "../components/TerrainCollider";
 import ComponentMask from "../utilities/ComponentMask";
-import Force from "../components/Force";
+import BoatLocomotion from "../components/BoatLocomotion";
+import { EntityIndexById } from "../utilities/Collections";
+
+const drag = 0.05;
 
 export default class Physics implements GameSystem {
     readonly mask: ComponentMask = {
         bodies: {
-            transform: {
-                type: Transform,
+            driver: {
+                type: BoatLocomotion,
                 required: true
             },
-            force: {
-                type: Force,
+            position: {
+                type: Position,
                 required: true
             }
         },
@@ -29,49 +29,41 @@ export default class Physics implements GameSystem {
         }
     }
 
-    parse() {
-
+    parse(entities: {
+        bodies: EntityIndexById<{ driver: BoatLocomotion, position: Position }>,
+        terrain: EntityIndexById<{ collider: TerrainCollider }>,
+    }) {
+        for (let body of entities.bodies) {
+            applyDriver(body.driver, body.position, [...entities.terrain][0].collider);
+        }
     }
 }
 
-export const parse = function (components: { movement: Movement[], transform: Transform[], position: Position[], controlState: BoatControlState[], terrain: TerrainCollider[] }) {
-    for (let i = 0; i < components.movement.length; i++) {
-        const movement = components.movement[i];
-        const transform = components.transform[i];
-        const position = components.position[i];
-        const state = components.controlState[i];
-        const terrain = components.terrain[i];
+function applyDriver(driver: BoatLocomotion, position: Position, terrain: TerrainCollider) {
+    // Direction
+    if (driver.forces.heading != 0) {
+        position.heading = roll(position.heading + driver.forces.heading * STEP_RATE, 0, Math.PI * 2);
+    }
 
-        // Direction
-        if (movement.turnRate != 0) {
-            transform.rotY += movement.turnRate * movement.maxTurnRate * STEP_RATE * movement.speed;
-            // Animation/rendering system
-            // this._mesh.rotation.y = this._direction;
+    // Position
+    if (driver.forces.forward != 0) {
+        const { x: deltaX, y: deltaY } = deltaFromAngle({ distance: driver.forces.forward * STEP_RATE, angle: position.heading });
+        const newPos = {
+            x: position.x + deltaX,
+            y: position.y + deltaY
+        };
+        const worldX = Math.round(newPos.x);
+        const worldY = Math.round(newPos.y);
+
+        if (checkCollision(newPos.x, newPos.y, terrain.heighMap)) {
+            // TODO trim offending transform to simulate sliding
+        } else {
+            position.x += deltaX;
+            position.y += deltaY;
         }
 
         // Drag due ot water resistance
-        if (!state.accelerating && !state.decelerating) {
-            movement.speed = Math.max(movement.speed - (movement.maxSpeed * 0.05 + (movement.speed ** 2)) * movement.drag * STEP_RATE, 0);
-        }
-
-        // Position
-        if (movement.speed != 0) {
-            const { x: deltaX, z: deltaZ } = deltaFromAngle({ distance: movement.speed * movement.maxSpeed * STEP_RATE, angle: position.rotY + transform.rotY });
-            const newPos = {
-                x: position.x + transform.x + deltaX,
-                z: position.z + transform.z + deltaZ
-            };
-            const worldX = Math.round(newPos.x);
-            const worldZ = Math.round(newPos.z);
-
-            if (checkCollision(newPos.x, newPos.z, terrain.heighMap)) {
-                //this.updateMap(worldX, worldZ, '#f00');
-            } else {
-                //this.updateMap(worldX, worldZ, '#fff');
-                transform.x += deltaX;
-                transform.z += deltaZ;
-            }
-        }
+        driver.forces.forward = Math.max(driver.forces.forward - (driver.limits.forward * 0.05 + (driver.forces.forward ** 2)) * drag * STEP_RATE, 0);
     }
 }
 
