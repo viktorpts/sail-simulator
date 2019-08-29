@@ -1,25 +1,26 @@
 import * as THREE from 'three';
 import Identity from './utilities/Identity';
 import EntityManager from './utilities/EntityManager';
-import NauticalScene from './entities/NauticalScene';
-import TrackingCamera from './entities/TrackingCamera';
+import NauticalScene from './render/NauticalScene';
+import TrackingCamera from './render/TrackingCamera';
 import InputState from './components/InputState';
 import { createPlayerBoat, createTerrain } from './utilities/factories/entityFactory';
 import * as keyboardInput from './utilities/keyboardInput';
 import { STEP_SIZE_IN_MS } from './constants';
 import * as debug from './utilities/debugOutput';
 import BoatControlState from './components/BoatControlState';
-import { Input } from './ctrlScheme';
 import PlayerControl from './systems/PlayerControl';
 import BoatDriver from './systems/BoatDriver';
 import BoatLocomotion from './components/BoatLocomotion';
 import Physics from './systems/Physics';
-import TerrainCollider from './components/TerrainCollider';
 import Position from './components/Position';
 import { updateMap } from './utilities/minimap';
 import { roll } from './utilities/helpers';
+import { makeArrow } from './render/modelMaker';
+import { Vector3 } from 'three';
 
 function main() {
+    //THREE.Object3D.DefaultUp = new Vector3(0,0,1);
     // Setup
     debug.initialize(document.getElementById('debug') as HTMLDivElement);
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -33,8 +34,8 @@ function main() {
     const scene = new NauticalScene();
 
     // Components and systems
-    // Boat
     const keys = new InputState(identity.next(), 1000);
+    keyboardInput.initialize(keys);
     const boat = createPlayerBoat(identity, keys);
 
     world.entitites.push(boat);
@@ -43,10 +44,12 @@ function main() {
     world.systems.push(new BoatDriver());
     world.systems.push(new Physics());
 
-    keyboardInput.initialize(keys);
 
     // World and rendering
     initializeCamera(scene.camera);
+    scene.bindActorToEntity(boat);
+    const arrow = makeArrow();
+    scene.addAndBind(arrow, boat);
     const actor = boat.components[Position.name] as Position;
     let lastUpdate = performance.now();
     let delta = 0;
@@ -59,23 +62,15 @@ function main() {
         time *= 0.001;  // convert time to seconds
         while (delta >= STEP_SIZE_IN_MS) {
             delta -= STEP_SIZE_IN_MS;
-            scene.step(time);
-
-            world.update();
             
-            scene.actor.mesh.position.x = actor.lon;
-            scene.actor.mesh.position.z = -actor.lat;
-            scene.actor.mesh.rotation.y = Math.PI - actor.heading;
+            world.update();
+            scene.step(time);
+            
             /*
-            playerControl.parse(inputBlock);
-            applyControl.parse(controlBlock);
-            applyPhysics.parse(physicsBlock);
-            applyTransform.parse(transformBlock);
             follow.parse(followBlock);
-            updateModel.parse(modelBlock);
             animateBoat.parse(animationBlock);
-
             */
+
             updateMap(actor.lon, actor.lat, '#fff');
         }
 

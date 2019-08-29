@@ -1,8 +1,7 @@
-import GameSystem from "./GameSystem";
-import Model from "../components/Model";
 import Position from "../components/Position";
 
-export const parse: GameSystem = function (components: { position: Position[], model: Model[] }) {
+export function parse(components: { position: Position[] }) {
+    /*
     for (let i = 0; i < components.position.length; i++) {
         const position = components.position[i];
         const model = components.model[i];
@@ -14,4 +13,5 @@ export const parse: GameSystem = function (components: { position: Position[], m
         model.model.rotation.y = position.rotY;
         model.model.rotation.z = position.rotZ;
     }
+    */
 }
