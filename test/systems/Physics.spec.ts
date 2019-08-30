@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import Physics from '../../src/systems/-Physics';
+import Physics from '../../src/systems/Physics';
 import EntityFactory from '../../src/utilities/factories/EntityFactory';
 import Identity from '../../src/utilities/Identity';
 import { EntityIndexById } from '../../src/utilities/Collections';
