@@ -12,7 +12,7 @@ import BoatControlState from './components/BoatControlState';
 import PlayerControl from './systems/PlayerControl';
 import BoatDriver from './systems/BoatDriver';
 import BoatLocomotion from './components/BoatLocomotion';
-import Physics from './systems/Physics';
+import Physics from './systems/-Physics';
 import Position from './components/Position';
 import { updateMap } from './utilities/minimap';
 import { roll } from './utilities/helpers';
