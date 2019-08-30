@@ -19,38 +19,46 @@ const maxSpeed = 10;
 const trimRate = Math.PI * 0.25;
 const maxTrimAngle = Math.PI * 0.3;
 
-export function createPlayerBoat(identity: Identity, input: InputState) {
-    const boat = new PlayerBoat(identity.next());
+export default class EntityFactory {
+    constructor(public identity: Identity) {}
 
-    const control = new BoatControlState(identity.next(), boat.id);
-    const driver = createBoatDriver(identity, boat.id);
-    const position = new Position({x: 0, y: 0, z: 0}, {rotX: 0, rotY: 0, rotZ: 0}, identity.next(), boat.id);
-
-    boat.init(input, control, driver, position);
-
-    return boat;
-}
-
-export function createBoatDriver(identity: Identity, boatId: number) {
-    const driver = new BoatLocomotion(identity.next(), boatId);
-    driver.forces = new Force({x: 0, y: 0, z: 0}, {rotX: 0, rotY: 0, rotZ: 0}, identity.next(), driver.id);
-    driver.rates = new ForceRate({x: 0, y: acceleration, z: 0}, {rotX: 0, rotY: 0, rotZ: turnRateDelta}, identity.next(), driver.id);
-    driver.limits = new ForceLimit({x: 0, y: maxSpeed, z: 0}, {rotX: 0, rotY: 0, rotZ: maxTurnRate}, identity.next(), driver.id);
-    driver.trimAngle = 0;
-    driver.trimRate = trimRate;
-    driver.maxTrimAngle = maxTrimAngle;
-
-    return driver;
-}
-
-export function createTerrain(identity: Identity) {
-    const terrain = new Terrain(identity.next())
-    terrain.init(createTerrainCollider(identity, terrain.id));
-
-    return terrain;
-}
-
-export function createTerrainCollider(identity: Identity, parentId: number) {
-    const heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED);
-    return new TerrainCollider(heightMap, identity.next(), parentId);
+    createPlayerBoat(input: InputState) {
+        const boat = new PlayerBoat(this.identity.next());
+    
+        const control = new BoatControlState(this.identity.next(), boat.id);
+        const driver = this.createBoatDriver(boat.id);
+        const position = new Position({x: 0, y: 0, z: 0}, {rotX: 0, rotY: 0, rotZ: 0}, this.identity.next(), boat.id);
+    
+        boat.init(input, control, driver, position);
+    
+        return boat;
+    }
+    
+    createBoatDriver(boatId: number) {
+        const driver = new BoatLocomotion(this.identity.next(), boatId);
+        driver.forces = new Force({x: 0, y: 0, z: 0}, {rotX: 0, rotY: 0, rotZ: 0}, this.identity.next(), driver.id);
+        driver.rates = new ForceRate({x: 0, y: acceleration, z: 0}, {rotX: 0, rotY: 0, rotZ: turnRateDelta}, this.identity.next(), driver.id);
+        driver.limits = new ForceLimit({x: 0, y: maxSpeed, z: 0}, {rotX: 0, rotY: 0, rotZ: maxTurnRate}, this.identity.next(), driver.id);
+        driver.trimAngle = 0;
+        driver.trimRate = trimRate;
+        driver.maxTrimAngle = maxTrimAngle;
+    
+        return driver;
+    }
+    
+    createTerrain() {
+        const terrain = new Terrain(this.identity.next())
+        terrain.init(this.createTerrainCollider(terrain.id));
+    
+        return terrain;
+    }
+    
+    createTerrainCollider(parentId: number) {
+        const heightMap = generateHeight(WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED);
+        return new TerrainCollider(heightMap, this.identity.next(), parentId);
+    }
+    
+    createArrow(x: number, y: number, z: number, xRot?: number, yRot?: number, zRot?: number) {
+        
+    }
 }

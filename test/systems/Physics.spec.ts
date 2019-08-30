@@ -1,19 +1,20 @@
 import { expect } from 'chai';
 import 'mocha';
 import Physics from '../../src/systems/Physics';
-import { createBoatDriver, createTerrainCollider } from '../../src/utilities/factories/entityFactory';
+import EntityFactory from '../../src/utilities/factories/EntityFactory';
 import Identity from '../../src/utilities/Identity';
 import { EntityIndexById } from '../../src/utilities/Collections';
 import Position from '../../src/components/Position';
 import BoatLocomotion from '../../src/components/BoatLocomotion';
-import { parse } from 'ts-node';
 import { STEP_SIZE } from '../../src/constants';
 
 describe('Physics System', () => {
     const identity = new Identity();
+    const factory = new EntityFactory(identity);
+
     const terrain = new EntityIndexById({
         1000: {
-            collider: createTerrainCollider(identity, 1000)
+            collider: factory.createTerrainCollider(1000)
         }
     });
 
@@ -24,7 +25,7 @@ describe('Physics System', () => {
     it('can interact with entitites', () => {
         const item = new Physics();
 
-        const driver = createBoatDriver(identity, 1001);
+        const driver = factory.createBoatDriver(1001);
         const position = new Position(identity.next(), 1001);
         const bodies = new EntityIndexById({
             1001: {
@@ -48,7 +49,7 @@ describe('Physics System', () => {
 
         beforeEach(() => {
             item = new Physics();
-            driver = createBoatDriver(identity, 1001);
+            driver = factory.createBoatDriver(1001);
             position = new Position(identity.next(), 1001);
             bodies = new EntityIndexById({
                 1001: {
@@ -132,7 +133,7 @@ describe('Physics System', () => {
 
         beforeEach(() => {
             item = new Physics();
-            driver = createBoatDriver(identity, 1001);
+            driver = factory.createBoatDriver(1001);
             position = new Position(identity.next(), 1001);
             bodies = new EntityIndexById({
                 1001: {
@@ -142,10 +143,22 @@ describe('Physics System', () => {
             });
         });
 
+        it('does not turn while stationary', () => {
+            const howManySteps = 10;
+
+            driver.forces.heading = driver.limits.heading;
+
+            for (let i = 0; i < howManySteps; i++) {
+                item.parse({ bodies, terrain });
+                expect(position.heading).to.equal(0);
+            }
+        });
+
         it('can turn clockwise (increasing heading)', () => {
             const howManySteps = 10;
 
             driver.forces.heading = driver.limits.heading;
+            driver.forces.forward = driver.limits.forward; // Turning wont work unless the boat is moving
 
             let prevHeading = position.heading;
             for (let i = 0; i < howManySteps; i++) {
@@ -160,6 +173,7 @@ describe('Physics System', () => {
 
             position.heading = Math.PI * 2 - driver.limits.heading * STEP_SIZE; // Decrease past 0 initially to prevent clamping errors
             driver.forces.heading = -driver.limits.heading;
+            driver.forces.forward = driver.limits.forward; // Turning wont work unless the boat is moving
 
             let prevHeading = position.heading;
             for (let i = 0; i < howManySteps; i++) {
@@ -176,6 +190,7 @@ describe('Physics System', () => {
             driver.forces.heading = driver.limits.heading;
 
             for (let i = 0; i < howManySteps; i++) {
+                driver.forces.forward = driver.limits.forward; // Physics will slow down the boat every tick
                 item.parse({ bodies, terrain });
             }
 
@@ -189,6 +204,7 @@ describe('Physics System', () => {
             driver.forces.heading = -driver.limits.heading;
 
             for (let i = 0; i < howManySteps; i++) {
+                driver.forces.forward = driver.limits.forward; // Physics will slow down the boat every tick
                 item.parse({ bodies, terrain });
             }
 

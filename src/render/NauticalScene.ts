@@ -1,5 +1,5 @@
 import { Scene, Color, AmbientLight, Mesh, Object3D, Vector3, Quaternion } from 'three';
-import { makeCompass, makeTerrain, makeWaves, makeSea } from './modelMaker';
+import { makeCompass, makeTerrain, makeWaves, makeSea, makeWaterflow } from './modelMaker';
 import Boat from './Boat';
 import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from '../constants';
 import { generateHeight } from '../util';
@@ -35,17 +35,21 @@ export default class NauticalScene extends Scene {
         const terrain = makeTerrain(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
         const boat = new Boat();
         this._actor = boat;
-        this.waves = makeWaves();
         const sea = makeSea(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
         sea.position.z = -0.1;
         this.add(boat.mesh);
         this.add(terrain);
         this.add(sea);
+        // Water surface
+        this.waves = makeWaves();
+        this.add(makeWaterflow());
+        /*
         for (let x = -10; x < 10; x++) {
             for (let y = -10; y < 10; y++) {
                 this.add(this.waves.getOffset(x, y));
             }
         }
+        */
 
         this._camera = new TrackingCamera(boat.mesh);
     }

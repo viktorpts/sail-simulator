@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import EntityManager from '../../src/utilities/EntityManager';
-import { createPlayerBoat } from '../../src/utilities/factories/entityFactory';
+import EntityFactory from '../../src/utilities/factories/EntityFactory';
 import Identity from '../../src/utilities/Identity';
 import InputState from '../../src/components/InputState';
 import PlayerControl from '../../src/systems/PlayerControl';
@@ -11,9 +11,10 @@ import BoatControlState from '../../src/components/BoatControlState';
 
 describe('EntityManager Input processing', () => {
     const identity = new Identity();
+    const factory = new EntityFactory(identity);
     let item = new EntityManager();
     let input = new InputState(identity.next(), 1000);
-    let boat = createPlayerBoat(identity, input);
+    let boat = factory.createPlayerBoat(input);
     let playerControl = new PlayerControl();
 
     item.entitites.push(boat);
@@ -22,7 +23,7 @@ describe('EntityManager Input processing', () => {
     beforeEach(() => {
         item = new EntityManager();
         input = new InputState(identity.next(), 1000);
-        boat = createPlayerBoat(identity, input);
+        boat = factory.createPlayerBoat(input);
         playerControl = new PlayerControl();
         item.entitites.push(boat);
         item.systems.push(playerControl);

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import MeshBuilder from './MeshBuilder';
 import { generateHeight } from '../util';
 import { WORLD_WIDTH, WORLD_HEIGHT } from '../constants';
+import { Water } from './lib/Water2';
 
 
 export function makeBoat(color: number) {
@@ -124,13 +125,30 @@ export function makeHeadsail() {
     return model;
 }
 
+export function makeWaterflow() {
+    const params = {
+        color: '#ffffff',
+        scale: 500,
+        flowX: 1,
+        flowY: 1
+    };
+    
+    const waterGeometry = new THREE.PlaneBufferGeometry(WORLD_WIDTH, WORLD_WIDTH);
+    const water = new Water(waterGeometry, {
+        color: params.color,
+        scale: params.scale,
+        flowDirection: new THREE.Vector2(params.flowX, params.flowY),
+        textureWidth: 1024,
+        textureHeight: 1024
+    });
+    water.position.z = 0.05;
+    return water;
+}
+
 export function makeWaves() {
     const qxc = 100;
 
     const geometry = new THREE.PlaneBufferGeometry(qxc, qxc, qxc, qxc);
-    //const geometry = new THREE.BufferGeometry();
-    //geometry.fromGeometry(new THREE.PlaneGeometry(qxc, qxc, qxc, qxc));
-    //geometry.rotateX(- Math.PI / 2);
     const position = <THREE.BufferAttribute>geometry.attributes.position;
     position.dynamic = true;
     for (let i = 1; i < position.count; i++) {
@@ -138,7 +156,11 @@ export function makeWaves() {
         position.setZ(i, z);
     }
     geometry.computeVertexNormals();
-    const material = new THREE.MeshStandardMaterial({ color: 0x1c2f63, transparent: true, opacity: 0.5 });
+    const waterMap = (new THREE.TextureLoader()).load('water.jpg');
+    waterMap.wrapS = THREE.RepeatWrapping;
+    waterMap.wrapT = THREE.RepeatWrapping;
+    waterMap.repeat = new THREE.Vector2(10, 10);
+    const material = new THREE.MeshStandardMaterial({ color: 0x1c2f63, transparent: true, opacity: 0.5, map: waterMap, bumpMap: waterMap, bumpScale: 0.1 });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;
 
@@ -186,7 +208,7 @@ export function makeSea(data: Int16Array, width: number, height: number) {
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
 
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0.5 }));
     mesh.position.y = -0.1;
 
     return mesh;

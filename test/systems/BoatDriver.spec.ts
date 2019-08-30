@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import BoatDriver from '../../src/systems/BoatDriver';
 import BoatControlState from '../../src/components/BoatControlState';
-import { createBoatDriver } from '../../src/utilities/factories/entityFactory';
+import EntityFactory from '../../src/utilities/factories/EntityFactory';
 import Identity from '../../src/utilities/Identity';
 import { EntityIndexById } from '../../src/utilities/Collections';
 import BoatLocomotion from '../../src/components/BoatLocomotion';
@@ -10,6 +10,7 @@ import { STEP_SIZE, TICK_RATE_PER_SEC } from '../../src/constants';
 
 describe('BoatDriver System', () => {
     const identity = new Identity();
+    const factory = new EntityFactory(identity);
 
     it('can be instantiated without error', () => {
         expect(() => new BoatDriver()).to.not.throw;
@@ -20,7 +21,7 @@ describe('BoatDriver System', () => {
 
         const control = new BoatControlState(1002, 1001);
         control.accelerating = true;
-        const driver = createBoatDriver(identity, 1001);
+        const driver = factory.createBoatDriver(1001);
 
         item.parse({
             boats: new EntityIndexById({
@@ -43,7 +44,7 @@ describe('BoatDriver System', () => {
         beforeEach(() => {
             item = new BoatDriver();
             control = new BoatControlState(identity.next(), 1001);
-            driver = createBoatDriver(identity, 1001);
+            driver = factory.createBoatDriver(1001);
             boats = new EntityIndexById({
                 1001: {
                     control,

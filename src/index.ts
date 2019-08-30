@@ -4,7 +4,7 @@ import EntityManager from './utilities/EntityManager';
 import NauticalScene from './render/NauticalScene';
 import TrackingCamera from './render/TrackingCamera';
 import InputState from './components/InputState';
-import { createPlayerBoat, createTerrain } from './utilities/factories/entityFactory';
+import EntityFactory from './utilities/factories/EntityFactory';
 import * as keyboardInput from './utilities/keyboardInput';
 import { STEP_SIZE_IN_MS } from './constants';
 import * as debug from './utilities/debugOutput';
@@ -35,12 +35,13 @@ function main() {
     const scene = new NauticalScene();
 
     // Components and systems
+    const factory = new EntityFactory(identity);
     const keys = new InputState(identity.next(), 1000);
     keyboardInput.initialize(keys);
-    const boat = createPlayerBoat(identity, keys);
+    const boat = factory.createPlayerBoat(keys);
 
     world.entitites.push(boat);
-    world.entitites.push(createTerrain(identity));
+    world.entitites.push(factory.createTerrain());
     world.systems.push(new PlayerControl());
     world.systems.push(new BoatDriver());
     world.systems.push(new Physics());
@@ -50,7 +51,7 @@ function main() {
     initializeCamera(scene.camera);
     scene.bindActorToEntity(boat);
     const arrow = makeArrow();
-    scene.addAndBind(arrow, boat);
+    //scene.addAndBind(arrow, boat);
     const actor = boat.components[Position.name] as Position;
     const driver = boat.components[BoatLocomotion.name] as BoatLocomotion;
     let lastUpdate = performance.now();
@@ -80,9 +81,9 @@ function main() {
         scene.camera.update();
 
         renderer.render(scene, scene.camera);
-        debug.log('Orders', parseControls(keys, boat.components[BoatControlState.name] as BoatControlState));
-        debug.log('Movement', parseMovement(driver));
-        debug.log('Position', parsePosition(actor));
+        //debug.log('Orders', parseControls(keys, boat.components[BoatControlState.name] as BoatControlState));
+        //debug.log('Movement', parseMovement(driver));
+        //debug.log('Position', parsePosition(actor));
         debug.print();
         requestAnimationFrame(render);
     }

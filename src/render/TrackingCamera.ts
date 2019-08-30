@@ -2,8 +2,8 @@ import { PerspectiveCamera, Object3D } from 'three';
 
 const fov = 75;
 const aspect = 4 / 3;
-const near = 0.1;
-const far = 1000;
+const near = 0.5;
+const far = 2000;
 
 export default class TrackingCamera extends PerspectiveCamera {
     private target: Object3D;
