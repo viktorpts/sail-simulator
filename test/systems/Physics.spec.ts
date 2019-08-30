@@ -7,6 +7,7 @@ import { EntityIndexById } from '../../src/utilities/Collections';
 import Position from '../../src/components/Position';
 import BoatLocomotion from '../../src/components/BoatLocomotion';
 import { STEP_SIZE } from '../../src/constants';
+import Wind from '../../src/components/Wind';
 
 describe('Physics System', () => {
     const identity = new Identity();
@@ -33,8 +34,13 @@ describe('Physics System', () => {
                 position
             }
         });
+        const environment = new EntityIndexById({
+            1000: {
+                wind: factory.createWind(1000)
+            }
+        });
 
-        item.parse({ bodies, terrain });
+        item.parse({ bodies, terrain, environment });
 
         expect(position.x).to.equal(0);
         expect(position.y).to.equal(0);
@@ -46,6 +52,8 @@ describe('Physics System', () => {
         let driver: BoatLocomotion;
         let position: Position;
         let bodies: EntityIndexById<{ driver: BoatLocomotion, position: Position }>;
+        let wind: Wind;
+        let environment: EntityIndexById<{ wind: Wind }>;
 
         beforeEach(() => {
             item = new Physics();
@@ -57,6 +65,12 @@ describe('Physics System', () => {
                     position
                 }
             });
+            wind = factory.createWind(1000);
+            environment = new EntityIndexById({
+                1000: {
+                    wind
+                }
+            });
         });
 
         it('can move north', () => {
@@ -65,7 +79,7 @@ describe('Physics System', () => {
             driver.forces.forward = driver.limits.forward;
 
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
             }
 
             expect(position.y).to.be.greaterThan(0);
@@ -78,7 +92,7 @@ describe('Physics System', () => {
             driver.forces.forward = driver.limits.forward;
 
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
             }
 
             expect(position.x).to.be.greaterThan(0);
@@ -91,7 +105,7 @@ describe('Physics System', () => {
             driver.forces.forward = driver.limits.forward;
 
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
             }
 
             expect(position.y).to.be.lessThan(0);
@@ -104,7 +118,7 @@ describe('Physics System', () => {
             driver.forces.forward = driver.limits.forward;
 
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
             }
 
             expect(position.x).to.be.lessThan(0);
@@ -117,7 +131,7 @@ describe('Physics System', () => {
 
             let prevSpeed = driver.forces.forward;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
                 expect(driver.forces.forward).to.be.lessThan(prevSpeed);
                 prevSpeed = driver.forces.forward;
             }
@@ -130,6 +144,8 @@ describe('Physics System', () => {
         let driver: BoatLocomotion;
         let position: Position;
         let bodies: EntityIndexById<{ driver: BoatLocomotion, position: Position }>;
+        let wind: Wind;
+        let environment: EntityIndexById<{ wind: Wind }>;
 
         beforeEach(() => {
             item = new Physics();
@@ -141,6 +157,12 @@ describe('Physics System', () => {
                     position
                 }
             });
+            wind = factory.createWind(1000);
+            environment = new EntityIndexById({
+                1000: {
+                    wind
+                }
+            });
         });
 
         it('does not turn while stationary', () => {
@@ -149,7 +171,7 @@ describe('Physics System', () => {
             driver.forces.heading = driver.limits.heading;
 
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
                 expect(position.heading).to.equal(0);
             }
         });
@@ -162,7 +184,7 @@ describe('Physics System', () => {
 
             let prevHeading = position.heading;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
                 expect(position.heading).to.be.greaterThan(prevHeading);
                 prevHeading = position.heading;
             }
@@ -177,7 +199,7 @@ describe('Physics System', () => {
 
             let prevHeading = position.heading;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
                 expect(position.heading).to.be.lessThan(prevHeading);
                 prevHeading = position.heading;
             }
@@ -191,7 +213,7 @@ describe('Physics System', () => {
 
             for (let i = 0; i < howManySteps; i++) {
                 driver.forces.forward = driver.limits.forward; // Physics will slow down the boat every tick
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
             }
 
             expect(position.heading).to.be.closeTo(driver.limits.heading * STEP_SIZE * (howManySteps - 1), 0.0001);
@@ -205,7 +227,7 @@ describe('Physics System', () => {
 
             for (let i = 0; i < howManySteps; i++) {
                 driver.forces.forward = driver.limits.forward; // Physics will slow down the boat every tick
-                item.parse({ bodies, terrain });
+                item.parse({ bodies, terrain, environment });
             }
 
             expect(position.heading).to.be.closeTo(Math.PI * 2 - driver.limits.heading * STEP_SIZE * (howManySteps - 1), 0.0001);

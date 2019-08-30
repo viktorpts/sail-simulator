@@ -119,10 +119,14 @@ function deriveWindForces(actor: Position, driver: BoatLocomotion, wind: Wind, w
     appHelper.forward = apparentWindVector.length();
 
     const AoA = roll(driver.trimAngle + actor.heading + Math.PI, 0, Math.PI * 2) - appHelper.heading;
-    debug.log('Sails', `AoA: ${AoA.toFixed(2)}, ${Math.sign(AoA) + Math.sign(driver.trimAngle) == 0 ? 'hauling' : 'luffing'}`);
+    debug.log('Sails', `AoA: ${toDeg(AoA)}, (as calculated ${toDeg(driver.AoA)} dot ${driver.dot.toFixed(2)} cross ${driver.cross.toFixed(2)}), ${Math.sign(AoA) + Math.sign(driver.trimAngle) == 0 ? 'hauling' : 'luffing'}`);
 
     const efficiency = AoA * driver.trimAngle
     debug.log('Sail efficiency', `${-efficiency.toFixed(2)} %`);
+
+    function toDeg(rad: number) {
+        return (rad / Math.PI * 180).toFixed(0);
+    }
 }
 
 function initializeCamera(camera: TrackingCamera) {
