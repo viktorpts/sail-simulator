@@ -11,6 +11,8 @@ import { generateHeight } from "../../util";
 import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from "../../constants";
 import TerrainCollider from "../../components/TerrainCollider";
 import Terrain from "../../entities/Terrain";
+import Environment from "../../entities/Environment";
+import Wind from "../../components/Wind";
 
 const turnRateDelta = Math.PI * 0.5;
 const maxTurnRate = Math.PI * 0.25;
@@ -58,7 +60,19 @@ export default class EntityFactory {
         return new TerrainCollider(heightMap, this.identity.next(), parentId);
     }
     
-    createArrow(x: number, y: number, z: number, xRot?: number, yRot?: number, zRot?: number) {
-        
+    createEnvironment() {
+        const env = new Environment(this.identity.next());
+        const wind = this.createWind(env.id);
+        env.init(wind);
+
+        return env;
+    }
+
+    createWind(parentId: number) {
+        const wind = new Wind(this.identity.next(), parentId);
+        wind.windHeading = Math.PI * 0.75;
+        wind.windSpeed = 10;
+
+        return wind;
     }
 }

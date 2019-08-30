@@ -16,12 +16,13 @@ import Physics from './systems/Physics';
 import Position from './components/Position';
 import { updateMap } from './utilities/minimap';
 import { roll } from './utilities/helpers';
-import { makeArrow } from './render/modelMaker';
-import { Vector3 } from 'three';
+import { Vector3, Vector2 } from 'three';
 import { Sound } from './utilities/sound';
+import Transform from './components/Transform';
+import Wind from './components/Wind';
 
 function main() {
-    THREE.Object3D.DefaultUp = new Vector3(0,0,1);
+    THREE.Object3D.DefaultUp = new Vector3(0, 0, 1);
     // Setup
     debug.initialize(document.getElementById('debug') as HTMLDivElement);
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -39,21 +40,31 @@ function main() {
     const keys = new InputState(identity.next(), 1000);
     keyboardInput.initialize(keys);
     const boat = factory.createPlayerBoat(keys);
+    const env = factory.createEnvironment();
 
     world.entitites.push(boat);
     world.entitites.push(factory.createTerrain());
+    world.entitites.push(env);
     world.systems.push(new PlayerControl());
     world.systems.push(new BoatDriver());
     world.systems.push(new Physics());
 
-
     // World and rendering
     initializeCamera(scene.camera);
     scene.bindActorToEntity(boat);
-    const arrow = makeArrow();
-    //scene.addAndBind(arrow, boat);
     const actor = boat.components[Position.name] as Position;
     const driver = boat.components[BoatLocomotion.name] as BoatLocomotion;
+
+    // Force gizmos and environemt
+    const windHelper = new Transform(500, 1000);
+    const appHelper = new Transform(501, 1000);
+    const aoaHelper = new Transform(501, 1000);
+    scene.addForceGizmo({ forceRef: driver.forces, scalarName: 'forward', headingRef: actor, headingName: 'heading' });
+    scene.addForceGizmo({ fixedScale: 4, headingRef: driver, headingName: 'trimAngle', trackActor: true, color: 0xffff00 });
+    scene.addForceGizmo({ transform: windHelper, color: 0x0000ff });
+    scene.addForceGizmo({ transform: appHelper, color: 0x6666ff });
+    scene.addForceGizmo({ transform: aoaHelper, color: 0xff66ff });
+
     let lastUpdate = performance.now();
     let delta = 0;
     requestAnimationFrame(render);
@@ -65,14 +76,10 @@ function main() {
         time *= 0.001;  // convert time to seconds
         while (delta >= STEP_SIZE_IN_MS) {
             delta -= STEP_SIZE_IN_MS;
-            
+
             world.update();
             scene.step(time);
-            
-            /*
-            follow.parse(followBlock);
-            animateBoat.parse(animationBlock);
-            */
+            deriveWindForces(actor, driver, env.components[Wind.name] as Wind, windHelper, appHelper, aoaHelper);
 
             updateMap(actor.lon, actor.lat, '#fff');
         }
@@ -91,6 +98,32 @@ function main() {
 }
 
 main();
+
+function deriveWindForces(actor: Position, driver: BoatLocomotion, wind: Wind, windHelper: Transform, appHelper: Transform, aoaHelper: Transform) {
+    //wind.windHeading = roll(wind.windHeading + Math.PI * 0.001, 0, Math.PI * 2);
+
+    windHelper.heading = wind.windHeading;
+    windHelper.forward = wind.windSpeed;
+
+    const windVector = new Vector2(Math.sin(wind.windHeading) * wind.windSpeed, Math.cos(wind.windHeading) * wind.windSpeed);
+    debug.log('Wind', `Heading: ${wind.windHeading.toFixed(2)} Speed: ${wind.windSpeed.toFixed(2)}`);
+    debug.log('As Vector', `X,Y: ${windVector.x.toFixed(2)}, ${windVector.y.toFixed(2)}`);
+
+    const velocityVector = new Vector2(Math.sin(actor.heading) * driver.forces.forward, Math.cos(actor.heading) * driver.forces.forward);
+    debug.log('Velocity', `X,Y: ${velocityVector.x.toFixed(2)}, ${velocityVector.y.toFixed(2)}`);
+
+    const apparentWindVector = new Vector2(windVector.x - velocityVector.x, windVector.y - velocityVector.y);
+    debug.log('Apparent', `X,Y: ${apparentWindVector.x.toFixed(2)}, ${apparentWindVector.y.toFixed(2)}`);
+
+    appHelper.heading = roll(Math.PI * 0.5 - apparentWindVector.angle(), 0, Math.PI * 2);
+    appHelper.forward = apparentWindVector.length();
+
+    const AoA = roll(driver.trimAngle + actor.heading + Math.PI, 0, Math.PI * 2) - appHelper.heading;
+    debug.log('Sails', `AoA: ${AoA.toFixed(2)}, ${Math.sign(AoA) + Math.sign(driver.trimAngle) == 0 ? 'hauling' : 'luffing'}`);
+
+    const efficiency = AoA * driver.trimAngle
+    debug.log('Sail efficiency', `${-efficiency.toFixed(2)} %`);
+}
 
 function initializeCamera(camera: TrackingCamera) {
     document.addEventListener('wheel', camera.onWheel.bind(camera));

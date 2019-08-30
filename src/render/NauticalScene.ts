@@ -1,5 +1,5 @@
 import { Scene, Color, AmbientLight, Mesh, Object3D, Vector3, Quaternion } from 'three';
-import { makeCompass, makeTerrain, makeWaves, makeSea, makeWaterflow } from './modelMaker';
+import { makeCompass, makeTerrain, makeWaves, makeSea, makeWaterflow, makeArrow } from './modelMaker';
 import Boat from './Boat';
 import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from '../constants';
 import { generateHeight } from '../util';
@@ -9,6 +9,8 @@ import PlayerBoat from '../entities/PlayerBoat';
 import BoatLocomotion from '../components/BoatLocomotion';
 import Position from '../components/Position';
 import GameEntity from '../entities/GameEntity';
+import GameComponent from '../components/GameComponent';
+import Transform from '../components/Transform';
 
 
 export default class NauticalScene extends Scene {
@@ -19,6 +21,7 @@ export default class NauticalScene extends Scene {
     private _heightMap: Int16Array;
     private _actorEntity: { driver: BoatLocomotion, position: Position };
     private _gameEntities: { object: Object3D, entity: GameEntity }[] = [];
+    private _gizmos: { (): void }[] = [];
 
     constructor() {
         super();
@@ -70,6 +73,7 @@ export default class NauticalScene extends Scene {
         this.waves.update(time);
         this.updateActor(time);
         this.updateEntities(time);
+        this.updateForceGizmos(time);
 
         this.sun.target.position.x = this.actor.mesh.position.x;
         this.sun.target.position.y = this.actor.mesh.position.y;
@@ -93,17 +97,17 @@ export default class NauticalScene extends Scene {
         this._actor.mesh.position.y = this._actorEntity.position.lat;
         this._actor.mesh.rotation.z = -this._actorEntity.position.heading;
         //this._actor.mesh.rotateOnAxis(new Vector3(0, 0, 1), Math.PI * 2 - this._actorEntity.position.heading);
-        
+
         this._actor.rudder.rotation.z = this._actorEntity.driver.forces.heading;
-        
+
         this._actor.mainsail.rotation.z = -this._actorEntity.driver.trimAngle;
-        this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle * 1.2;
-        
+        this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle * 1.3;
+
         const multiplier = this._actorEntity.driver.trimAngle > 0 ? 1 : -1;
         const speedFraction = this._actorEntity.driver.forces.forward / this._actorEntity.driver.limits.forward;
         this._actor.mainsail.scale.x = Math.max(0.001, speedFraction) * multiplier;
         this._actor.headsail.scale.x = this._actor.mainsail.scale.x;
-        
+
         // Bobbing
         //*
         this._actor.mesh.position.z = (Math.sin(time * 2 / 3) / 10) - 0.3;
@@ -116,6 +120,57 @@ export default class NauticalScene extends Scene {
     addAndBind(object: Object3D, entity: GameEntity) {
         this.add(object);
         this._gameEntities.push({ object, entity });
+    }
+
+    addForceGizmo(reference: { transform: Transform, color?: number }): void;
+    addForceGizmo<T extends GameComponent, K extends keyof T>(reference: { forceRef: T, scalarName: K, invertForce?: boolean, fixedHeading: number, trackActor?: boolean, color?: number }): void;
+    addForceGizmo<J extends GameComponent, L extends keyof J>(reference: { fixedScale: number, headingRef: J, headingName: L, invertHeading?: boolean, trackActor?: boolean, color?: number }): void;
+    addForceGizmo<T extends GameComponent, K extends keyof T, J extends GameComponent, L extends keyof J>(
+        reference: {
+            forceRef: T,
+            scalarName: K,
+            invertForce?: boolean,
+            headingRef: J,
+            headingName: L,
+            invertHeading?: boolean,
+            trackActor?: boolean,
+            color?: number
+        }): void;
+    addForceGizmo(reference: any) {
+        if (reference.transform !== undefined) {
+            reference.headingRef = reference.transform;
+            reference.headingName = 'heading';
+            reference.forceRef = reference.transform;
+            reference.scalarName = 'forward';
+        }
+        reference.color = reference.color || 0xffffff;
+        const arrow = makeArrow(reference.color);
+        arrow.position.z = 6 + this._gizmos.length * 0.01;
+        if (reference.fixedHeading !== undefined) {
+            arrow.rotation.z = -reference.fixedHeading;
+        }
+        if (reference.fixedScale === undefined) {
+            arrow.scale.y = reference.fixedScale || 0.01;
+        }
+        this.add(arrow);
+        this._gizmos.push(() => {
+            arrow.position.x = this._actorEntity.position.x;
+            arrow.position.y = this._actorEntity.position.y;
+
+            if (reference.fixedHeading === undefined) {
+                arrow.rotation.z = -(reference.headingRef[reference.headingName] as number) * (reference.invertHeading ? -1 : 1);
+                if (reference.trackActor) {
+                    arrow.rotation.z -= this._actorEntity.position.heading;
+                }
+            }
+            if (reference.fixedScale === undefined) {
+                arrow.scale.y = ((reference.forceRef[reference.scalarName] as number) * (reference.invertForce ? -1 : 1)) || 0.01;
+            }
+        });
+    }
+
+    private updateForceGizmos(time: number) {
+        this._gizmos.forEach(g => g());
     }
 
     private updateEntities(time: number) {

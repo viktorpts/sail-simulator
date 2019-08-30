@@ -72,7 +72,7 @@ export function makeRudder(color: number) {
 }
 
 export function makeMainsail() {
-    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
+    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1, side: THREE.DoubleSide }));
     model.addVertex(0, 0, 0);             // 0 front bottom
     model.addVertex(0, 0, 4);             // 1 front top
     model.addVertex(0, -1.5, 5);          // 2 back top
@@ -87,11 +87,13 @@ export function makeMainsail() {
     model.addFace(0, 4, 5);
     model.addFace(0, 5, 6);
 
+    /*
     model.addFace(0, 2, 1);
     model.addFace(0, 3, 2);
     model.addFace(0, 4, 3);
     model.addFace(0, 5, 4);
     model.addFace(0, 6, 5);
+    */
 
     model.mesh.castShadow = true;
     model.mesh.receiveShadow = true;
@@ -99,7 +101,7 @@ export function makeMainsail() {
 }
 
 export function makeHeadsail() {
-    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1 }));
+    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xe8e5d1, side: THREE.DoubleSide }));
     model.addVertex(0, 0, -6);  // 0 front bottom
     model.addVertex(0, 0, 0);  // 1 front top
     model.addVertex(-0.6, -0.7, -1.5);  // 2
@@ -114,11 +116,13 @@ export function makeHeadsail() {
     model.addFace(6, 3, 5);
     model.addFace(5, 3, 4);
 
+    /*
     model.addFace(0, 2, 1);
     model.addFace(0, 6, 2);
     model.addFace(6, 3, 2);
     model.addFace(6, 5, 3);
     model.addFace(5, 4, 3);
+    */
 
     model.mesh.castShadow = true;
     model.mesh.receiveShadow = true;
@@ -282,12 +286,25 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
     function generateTexture(data: Int16Array, width: number, height: number) {
         const z = 50;
         const biomes = generateHeight(width, height, z);
-        var canvas, canvasScaled, context, image, imageData, vector3, sun, shade;
+        var canvas, canvasScaled, context, image, imageData, vector3, sun, shade, mapCanvas;
         vector3 = new THREE.Vector3(0, 0, 0);
         sun = new THREE.Vector3(5, 10, -10);
         sun.normalize();
+
+        // Initialize mini-map canvas
+        mapCanvas = document.createElement('canvas');
+        mapCanvas.id = 'map';
+        mapCanvas.width = width;
+        mapCanvas.height = height;
+        const mapContext = mapCanvas.getContext('2d');
+        mapContext.fillStyle = '#000';
+        mapContext.fillRect(0, 0, width, height);
+        const mapImage = mapContext.getImageData(0, 0, mapCanvas.width, mapCanvas.height);
+        const mapImageData = mapImage.data;
+        document.getElementById('output').appendChild(mapCanvas);
+
+        // Initialize texture canvas
         canvas = document.createElement('canvas');
-        canvas.id = 'map';
         canvas.width = width;
         canvas.height = height;
         context = canvas.getContext('2d');
@@ -306,27 +323,34 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
             const heightModifier = (0.5 + data[j] * 0.007);
 
             if (data[j] <= 74) {
-                //*
-                imageData[i] = 28;
-                imageData[i + 1] = 47;
-                imageData[i + 2] = 99;
-                //*/
-                /*
-                imageData[i] = illuminate(28, shade);
-                imageData[i + 1] = illuminate(47, shade);
-                imageData[i + 2] = illuminate(99, shade);
-                */
+                imageData[i] = illuminate(blend(28, 212, data[j] / 74), shade);
+                imageData[i + 1] = illuminate(blend(47, 187, data[j] / 74), shade);
+                imageData[i + 2] = illuminate(blend(99, 121, data[j] / 74), shade);
+
+                mapImageData[i] = blend(28, 42, data[j] / 74);
+                mapImageData[i + 1] = blend(47, 70, data[j] / 74);
+                mapImageData[i + 2] = blend(99, 149, data[j] / 74);
             } else if (data[j] <= 80) {
                 imageData[i] = illuminate(212, shade);
                 imageData[i + 1] = illuminate(187, shade);
                 imageData[i + 2] = illuminate(121, shade);
+
+                mapImageData[i] = illuminate(212, shade);
+                mapImageData[i + 1] = illuminate(187, shade);
+                mapImageData[i + 2] = illuminate(121, shade);
             } else {
                 imageData[i] = illuminate(blend(37, biomes[j], blendAmt), shade) * heightModifier;
                 imageData[i + 1] = illuminate(blend(105, biomes[j], blendAmt), shade) * heightModifier;
                 imageData[i + 2] = illuminate(blend(37, biomes[j], blendAmt), shade) * heightModifier;
+
+                mapImageData[i] = illuminate(blend(37, biomes[j], blendAmt), shade) * heightModifier;
+                mapImageData[i + 1] = illuminate(blend(105, biomes[j], blendAmt), shade) * heightModifier;
+                mapImageData[i + 2] = illuminate(blend(37, biomes[j], blendAmt), shade) * heightModifier;
             }
         }
         context.putImageData(image, 0, 0);
+        mapContext.putImageData(mapImage, 0, 0);
+
         // Scaled 4x
         canvasScaled = document.createElement('canvas');
         canvasScaled.width = width * 4;
@@ -343,7 +367,6 @@ export function makeTerrain(data: Int16Array, worldWidth: number, worldDepth: nu
             imageData[i + 2] += v;
         }
         context.putImageData(image, 0, 0);
-        document.getElementById('output').appendChild(canvas);
         return canvasScaled;
 
         function grade(min: number, max: number, value: number) {
@@ -375,17 +398,14 @@ export function makeCompass() {
     return model.mesh;
 }
 
-export function makeArrow() {
-    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color: 0xffffff }));
-    model.addVertex(0, 5, 0);  // 0 Up
-    model.addVertex(-5, 0, 0); // 1 Left
-    model.addVertex(0, -5, 0); // 2 Down
-    model.addVertex(5, 0, 0);  // 3 Right
+export function makeArrow(color = 0xffffff) {
+    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color, side: THREE.DoubleSide }));
+    model.addVertex(0, 1, 0);    // 0 Forward
+    model.addVertex(-0.1, 0, 0); // 1 Left
+    model.addVertex(0.1, 0, 0);  // 2 Right
 
     // North
-    model.addVertex(0, 15, 0); // 4
-    model.addFace(1, 0, 4);
-    model.addFace(3, 4, 0);
+    model.addFace(0, 1, 2);
 
     return model.mesh;
 }
