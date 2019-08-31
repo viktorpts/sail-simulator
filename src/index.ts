@@ -16,10 +16,15 @@ import Physics from './systems/Physics';
 import Position from './components/Position';
 import { updateMap } from './utilities/minimap';
 import { roll } from './utilities/helpers';
-import { Vector3, Vector2 } from 'three';
+import { Vector3, Vector2, ArcCurve } from 'three';
 import { Sound } from './utilities/sound';
 import Transform from './components/Transform';
 import Wind from './components/Wind';
+import DebugControl from './systems/DebugControl';
+
+let going = true;
+document.getElementById('pause').addEventListener('click', () => going = false);
+document.getElementById('resume').addEventListener('click', () => going = true);
 
 function main() {
     THREE.Object3D.DefaultUp = new Vector3(0, 0, 1);
@@ -34,18 +39,20 @@ function main() {
     const world = new EntityManager();
 
     const scene = new NauticalScene();
+    document.getElementById('forces').addEventListener('input', e => scene.showForces = (e.target as HTMLInputElement).checked);
 
     // Components and systems
     const factory = new EntityFactory(identity);
     const keys = new InputState(identity.next(), 1000);
     keyboardInput.initialize(keys);
     const boat = factory.createPlayerBoat(keys);
-    const env = factory.createEnvironment();
+    const env = factory.createEnvironment(keys);
 
     world.entitites.push(boat);
     world.entitites.push(factory.createTerrain());
     world.entitites.push(env);
     world.systems.push(new PlayerControl());
+    world.systems.push(new DebugControl());
     world.systems.push(new BoatDriver());
     world.systems.push(new Physics());
 
@@ -57,13 +64,21 @@ function main() {
 
     // Force gizmos and environemt
     const windHelper = new Transform(500, 1000);
-    const appHelper = new Transform(501, 1000);
     const aoaHelper = new Transform(501, 1000);
+    const liftHelper = new Transform(502, 1000);
+    const dragHelper = new Transform(503, 1000);
+    const localWindX = new Transform(504, 1000);
+    const localWindY = new Transform(505, 1000);
+    const forceHelper = new Transform(506, 1000);
     scene.addForceGizmo({ forceRef: driver.forces, scalarName: 'forward', headingRef: actor, headingName: 'heading' });
-    scene.addForceGizmo({ fixedScale: 4, headingRef: driver, headingName: 'trimAngle', trackActor: true, color: 0xffff00 });
+    scene.addForceGizmo({ fixedScale: 2, headingRef: driver, headingName: 'trimAngle', trackActor: true, invertHeading: true, color: 0xffff00 });
     scene.addForceGizmo({ transform: windHelper, color: 0x0000ff });
-    scene.addForceGizmo({ transform: appHelper, color: 0x6666ff });
-    scene.addForceGizmo({ transform: aoaHelper, color: 0xff66ff });
+    scene.addForceGizmo({ transform: aoaHelper, color: 0x6666ff });
+    scene.addForceGizmo({ transform: liftHelper, color: 0x00ff00 });
+    scene.addForceGizmo({ transform: dragHelper, color: 0xff0000 });
+    scene.addForceGizmo({ transform: localWindX, color: 0xff00ff });
+    scene.addForceGizmo({ transform: localWindY, color: 0x00ffff });
+    scene.addForceGizmo({ transform: forceHelper, color: 0x000001 });
 
     let lastUpdate = performance.now();
     let delta = 0;
@@ -77,9 +92,11 @@ function main() {
         while (delta >= STEP_SIZE_IN_MS) {
             delta -= STEP_SIZE_IN_MS;
 
-            world.update();
+            if (going) {
+                world.update();
+            }
             scene.step(time);
-            deriveWindForces(actor, driver, env.components[Wind.name] as Wind, windHelper, appHelper, aoaHelper);
+            deriveWindForces(actor, driver, env.components[Wind.name] as Wind, windHelper, aoaHelper, liftHelper, dragHelper, localWindX, localWindY, forceHelper);
 
             updateMap(actor.lon, actor.lat, '#fff');
         }
@@ -99,30 +116,52 @@ function main() {
 
 main();
 
-function deriveWindForces(actor: Position, driver: BoatLocomotion, wind: Wind, windHelper: Transform, appHelper: Transform, aoaHelper: Transform) {
+function deriveWindForces(
+    actor: Position,
+    driver: BoatLocomotion,
+    wind: Wind,
+    windHelper: Transform,
+    aoaHelper: Transform,
+    liftHelper: Transform,
+    dragHelper: Transform,
+    localWindX: Transform,
+    localWindY: Transform,
+    forceHelper: Transform) {
     //wind.windHeading = roll(wind.windHeading + Math.PI * 0.001, 0, Math.PI * 2);
 
     windHelper.heading = wind.windHeading;
     windHelper.forward = wind.windSpeed;
 
     const windVector = new Vector2(Math.sin(wind.windHeading) * wind.windSpeed, Math.cos(wind.windHeading) * wind.windSpeed);
-    debug.log('Wind', `Heading: ${wind.windHeading.toFixed(2)} Speed: ${wind.windSpeed.toFixed(2)}`);
-    debug.log('As Vector', `X,Y: ${windVector.x.toFixed(2)}, ${windVector.y.toFixed(2)}`);
-
     const velocityVector = new Vector2(Math.sin(actor.heading) * driver.forces.forward, Math.cos(actor.heading) * driver.forces.forward);
-    debug.log('Velocity', `X,Y: ${velocityVector.x.toFixed(2)}, ${velocityVector.y.toFixed(2)}`);
-
     const apparentWindVector = new Vector2(windVector.x - velocityVector.x, windVector.y - velocityVector.y);
-    debug.log('Apparent', `X,Y: ${apparentWindVector.x.toFixed(2)}, ${apparentWindVector.y.toFixed(2)}`);
 
-    appHelper.heading = roll(Math.PI * 0.5 - apparentWindVector.angle(), 0, Math.PI * 2);
-    appHelper.forward = apparentWindVector.length();
+    aoaHelper.heading = roll(Math.PI * 0.5 - apparentWindVector.angle(), 0, Math.PI * 2);
+    aoaHelper.forward = apparentWindVector.length();
 
-    const AoA = roll(driver.trimAngle + actor.heading + Math.PI, 0, Math.PI * 2) - appHelper.heading;
-    debug.log('Sails', `AoA: ${toDeg(AoA)}, (as calculated ${toDeg(driver.AoA)} dot ${driver.dot.toFixed(2)} cross ${driver.cross.toFixed(2)}), ${Math.sign(AoA) + Math.sign(driver.trimAngle) == 0 ? 'hauling' : 'luffing'}`);
+    debug.log('Sails', `AoA: ${toDeg(driver.AoA)}, ${Math.sign(driver.AoA) + Math.sign(driver.trimAngle) == 0 ? 'hauling' : 'luffing'}`);
 
-    const efficiency = AoA * driver.trimAngle
+    const efficiency = driver.AoA * driver.trimAngle
     debug.log('Sail efficiency', `${-efficiency.toFixed(2)} %`);
+
+    localWindX.heading = Math.PI * 0.5 + actor.heading;
+    localWindX.forward = driver.localWind.x;
+    localWindY.heading = actor.heading;
+    localWindY.forward = driver.localWind.y;
+
+    dragHelper.heading = driver.trimAngle + actor.heading + Math.PI * 0.5 * Math.sign(driver.trimAngle) * -1;
+    dragHelper.forward = driver.drag;
+    liftHelper.heading = driver.trimAngle + actor.heading + Math.PI * 0.5 * Math.sign(driver.trimAngle) * -1;
+    liftHelper.forward = driver.lift;
+
+    const sailForce = new Vector2(driver.sailForce.x, driver.sailForce.y);
+    forceHelper.heading = Math.PI * 0.5 - sailForce.angle() + actor.heading;
+    forceHelper.forward = sailForce.length();
+
+    // Local readings
+    debug.log('Local Apparent Wind', `X,Y: ${driver.localWind.x.toFixed(2)} ${driver.localWind.y.toFixed(2)}`);
+    debug.log('Force', `Drag: ${driver.drag.toFixed(2)} Lift: ${driver.lift.toFixed(2)}`);
+    debug.log('Sail Vector', `X,Y: ${driver.sailForce.x.toFixed(2)} ${driver.sailForce.y.toFixed(2)}`);
 
     function toDeg(rad: number) {
         return (rad / Math.PI * 180).toFixed(0);

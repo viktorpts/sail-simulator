@@ -44,6 +44,7 @@ export default class EntityFactory {
         driver.trimAngle = 0;
         driver.trimRate = trimRate;
         driver.maxTrimAngle = maxTrimAngle;
+        driver.effSailArea = 0.5;
     
         return driver;
     }
@@ -60,10 +61,11 @@ export default class EntityFactory {
         return new TerrainCollider(heightMap, this.identity.next(), parentId);
     }
     
-    createEnvironment() {
+    createEnvironment(input: InputState) {
         const env = new Environment(this.identity.next());
         const wind = this.createWind(env.id);
-        env.init(wind);
+
+        env.init(wind, input);
 
         return env;
     }

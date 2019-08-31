@@ -51,24 +51,56 @@ export default class Physics implements GameSystem {
 }
 
 function applyWind(driver: BoatLocomotion, position: Position, wind: Wind) {
-    const windVector = { x: Math.sin(wind.windHeading) * wind.windSpeed, y: Math.cos(wind.windHeading) * wind.windSpeed };
-    const velocityVector = { x: Math.sin(position.heading) * driver.forces.forward, y: Math.cos(position.heading) * driver.forces.forward };
-    const apparentWindVector = { x: windVector.x - velocityVector.x, y: windVector.y - velocityVector.y };
-    const apparentWindHeading = roll(Math.PI * 0.5 - Math.atan2(apparentWindVector.y, apparentWindVector.x), 0, Math.PI * 2);
+    // Local space conversion and calculations
+    const windVector = { x: Math.sin(wind.windHeading - position.heading) * wind.windSpeed, y: Math.cos(wind.windHeading - position.heading) * wind.windSpeed };
+    const apparentWindVector = { x: windVector.x, y: windVector.y - driver.forces.forward };
+    const sailVector = { x: Math.sin(driver.trimAngle + Math.PI), y: Math.cos(driver.trimAngle + Math.PI) };
+    const cross = sailVector.x * apparentWindVector.y - sailVector.y * apparentWindVector.x;
+    const dot = sailVector.x * apparentWindVector.x + sailVector.y * apparentWindVector.y;
+    driver.AoA = Math.acos(dot / (Math.sqrt(sailVector.x ** 2 + sailVector.y ** 2) * Math.sqrt(apparentWindVector.x ** 2 + apparentWindVector.y ** 2))) * Math.sign(cross);
 
-    const sailVector = {x: Math.sin(driver.trimAngle + position.heading + Math.PI), y: Math.cos(driver.trimAngle + position.heading + Math.PI)};
-    driver.cross = sailVector.x * apparentWindVector.y - sailVector.y * apparentWindVector.x;
-    driver.dot = sailVector.x * apparentWindVector.x + sailVector.y * apparentWindVector.y;
-    //driver.AoA = Math.acos(driver.dot / (Math.sqrt(sailVector.x ** 2 + sailVector.y ** 2) * Math.sqrt(apparentWindVector.x ** 2 + apparentWindVector.y ** 2)));
-    driver.AoA = Math.asin(driver.cross / (Math.sqrt(sailVector.x ** 2 + sailVector.y ** 2) * Math.sqrt(apparentWindVector.x ** 2 + apparentWindVector.y ** 2)));
+    driver.localWind.x = apparentWindVector.x;
+    driver.localWind.y = apparentWindVector.y;
+
+    if (windInSail(driver.AoA, driver.trimAngle) === false) {
+        driver.lift = 0;
+        driver.drag = 0;
+        driver.sailForce = { x: 0, y: 0 };
+    } else {
+        // Based on AoA
+        const a = 2 * (Math.PI * 0.5 - Math.abs(Math.PI * 0.5 - Math.abs(driver.AoA))) / Math.PI;
+        const b = Math.sqrt(2 * Math.abs(driver.AoA) / Math.PI);
+        const dragCoef = a ** 2;
+        const liftCoef = Math.abs(driver.AoA) * 2 > Math.PI ? 0 : b * (b - 1) * (b ** 2 - 1) * 4.8;
+
+        // Based on sail area
+        const dragRatio = dragCoef * driver.effSailArea;
+        const liftRatio = liftCoef * driver.effSailArea;
+
+        // Based on wind speed
+        driver.drag = dragRatio * wind.windSpeed;
+        driver.lift = liftRatio * wind.windSpeed;
+
+        // Use sail vector to decompose lift and drag into forward and lateral forces on the boat
+        const force = driver.drag + driver.lift;
+        driver.sailForce = { x: force * sailVector.y * Math.sign(driver.trimAngle), y: -(force * sailVector.x * Math.sign(driver.trimAngle)) };
+
+        // Forward force
+        driver.forces.forward = Math.min(driver.forces.forward + driver.sailForce.y * STEP_SIZE, driver.limits.forward);
+    }
+
+    function windInSail(AoA: number, trimAngle: number) {
+        return Math.sign(AoA * trimAngle) <= 0 ? true : false;
+    }
 }
 
 function applyDriver(driver: BoatLocomotion, position: Position, terrain: TerrainCollider) {
     const speedFraction = driver.forces.forward / driver.limits.forward;
+    //const speedFraction = 1; // Debug option to rotate boat freely while stationary (will fail tests if left)
 
     // Direction
     if (driver.forces.heading != 0) {
-        position.heading = roll(position.heading + driver.forces.heading * STEP_SIZE * speedFraction, 0, Math.PI * 2);
+        position.heading = roll(position.heading + driver.forces.heading * STEP_SIZE * Math.max(speedFraction, 0.1), 0, Math.PI * 2);
     }
 
     // Position

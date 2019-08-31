@@ -400,12 +400,14 @@ export function makeCompass() {
 
 export function makeArrow(color = 0xffffff) {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color, side: THREE.DoubleSide }));
-    model.addVertex(0, 1, 0);    // 0 Forward
-    model.addVertex(-0.1, 0, 0); // 1 Left
-    model.addVertex(0.1, 0, 0);  // 2 Right
+    model.addVertex(-0.1, 1, 0); // 0 
+    model.addVertex(0.1, 1, 0);  // 1
+    model.addVertex(0.1, 0, 0);  // 2
+    model.addVertex(-0.1, 0, 0); // 3
 
     // North
     model.addFace(0, 1, 2);
+    model.addFace(0, 2, 3);
 
     return model.mesh;
 }

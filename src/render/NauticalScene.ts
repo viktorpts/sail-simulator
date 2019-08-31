@@ -22,6 +22,7 @@ export default class NauticalScene extends Scene {
     private _actorEntity: { driver: BoatLocomotion, position: Position };
     private _gameEntities: { object: Object3D, entity: GameEntity }[] = [];
     private _gizmos: { (): void }[] = [];
+    showForces = false;
 
     constructor() {
         super();
@@ -149,7 +150,7 @@ export default class NauticalScene extends Scene {
         if (reference.fixedHeading !== undefined) {
             arrow.rotation.z = -reference.fixedHeading;
         }
-        if (reference.fixedScale === undefined) {
+        if (reference.fixedScale !== undefined) {
             arrow.scale.y = reference.fixedScale || 0.01;
         }
         this.add(arrow);
@@ -158,7 +159,7 @@ export default class NauticalScene extends Scene {
             arrow.position.y = this._actorEntity.position.y;
 
             if (reference.fixedHeading === undefined) {
-                arrow.rotation.z = -(reference.headingRef[reference.headingName] as number) * (reference.invertHeading ? -1 : 1);
+                arrow.rotation.z = -(reference.headingRef[reference.headingName] as number) + (reference.invertHeading ? Math.PI : 0);
                 if (reference.trackActor) {
                     arrow.rotation.z -= this._actorEntity.position.heading;
                 }
