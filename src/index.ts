@@ -15,7 +15,7 @@ import BoatLocomotion from './components/BoatLocomotion';
 import Physics from './systems/Physics';
 import Position from './components/Position';
 import { updateMap } from './utilities/minimap';
-import { roll } from './utilities/helpers';
+import { wrap } from './utilities/helpers';
 import { Vector3, Vector2 } from 'three';
 import { Sound } from './utilities/sound';
 import Transform from './components/Transform';
@@ -143,7 +143,7 @@ function deriveWindForces(
     const velocityVector = new Vector2(Math.sin(actor.heading) * driver.forces.forward, Math.cos(actor.heading) * driver.forces.forward);
     const apparentWindVector = new Vector2(windVector.x - velocityVector.x, windVector.y - velocityVector.y);
 
-    aoaHelper.heading = roll(Math.PI * 0.5 - apparentWindVector.angle(), 0, Math.PI * 2);
+    aoaHelper.heading = wrap(Math.PI * 0.5 - apparentWindVector.angle(), 0, Math.PI * 2);
     aoaHelper.forward = apparentWindVector.length();
 
     debug.log('Sails', `AoA: ${toDeg(driver.AoA)}, ${Math.sign(driver.AoA) + Math.sign(driver.trimAngle) == 0 ? 'hauling' : 'luffing'}`);
@@ -219,7 +219,7 @@ function parsePosition(position: Position): string {
     const text = [
         '<ul>',
         `<li>X: ${position.x.toFixed(0)} Y: ${position.y.toFixed(0)}</li>`,
-        `<li>Heading: ${(roll(position.heading, 0, Math.PI * 2) / Math.PI * 180).toFixed(0)} degrees</li>`,
+        `<li>Heading: ${(wrap(position.heading, 0, Math.PI * 2) / Math.PI * 180).toFixed(0)} degrees</li>`,
         '</ul>'
     ];
     return text.join('');

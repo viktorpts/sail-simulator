@@ -4,9 +4,9 @@ export function clamp(value: number, min: number, max: number) {
     else return value;
 }
 
-export function roll(value: number, min: number, max: number) {
+export function wrap(value: number, min: number, max: number) {
     if (value < min) return value + (max - min);
-    else if (value > max) return value - (max - min);
+    else if (value >= max) return value - (max - min);
     else return value;
 }
 

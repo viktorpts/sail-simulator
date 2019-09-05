@@ -1,7 +1,7 @@
 import GameSystem from "./GameSystem";
 import Position from "../components/Position";
 import { STEP_SIZE, WORLD_WIDTH, WORLD_HEIGHT, WORLD_HSEGMENTS, WORLD_VSEGMENTS } from '../constants';
-import { deltaFromAngle, roll } from '../utilities/helpers';
+import { deltaFromAngle, wrap } from '../utilities/helpers';
 import TerrainCollider from "../components/TerrainCollider";
 import ComponentMask from "../utilities/ComponentMask";
 import BoatLocomotion from "../components/BoatLocomotion";
@@ -55,7 +55,7 @@ function applyDriver(driver: BoatLocomotion, position: Position, terrain: Terrai
 
     // Direction
     if (driver.forces.heading != 0) {
-        position.heading = roll(position.heading + driver.forces.heading * STEP_SIZE * Math.max(speedFraction, 0.1), 0, Math.PI * 2);
+        position.heading = wrap(position.heading + driver.forces.heading * STEP_SIZE * Math.max(speedFraction, 0.1), 0, Math.PI * 2);
     }
 
     // Position

@@ -4,7 +4,7 @@ import InputState from "../components/InputState";
 import ComponentMask from "../utilities/ComponentMask";
 import { EntityIndexById } from "../utilities/Collections";
 import Wind from "../components/Wind";
-import { roll } from "../utilities/helpers";
+import { wrap } from "../utilities/helpers";
 
 export default class DebugControl implements GameSystem {
     readonly mask: ComponentMask = {
@@ -35,9 +35,9 @@ export default class DebugControl implements GameSystem {
                 env.wind.windSpeed -= 0.1;
             }
             if (env.input[Input.Left]) {
-                env.wind.windHeading = roll(env.wind.windHeading - Math.PI * 0.01, 0, Math.PI * 2);
+                env.wind.windHeading = wrap(env.wind.windHeading - Math.PI * 0.01, 0, Math.PI * 2);
             } else if (env.input[Input.Right]) {
-                env.wind.windHeading = roll(env.wind.windHeading + Math.PI * 0.01, 0, Math.PI * 2);
+                env.wind.windHeading = wrap(env.wind.windHeading + Math.PI * 0.01, 0, Math.PI * 2);
             }
         }
     }

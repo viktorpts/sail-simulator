@@ -33,8 +33,10 @@ export type GroupDefinition = {
     [index: string]: ComponentDefinition
 }
 
+type ComponentConstructor = Function & { prototype: GameComponent };
+
 export type ComponentDefinition = {
-    type: new (...args: any[]) => GameComponent;
+    type: ComponentConstructor;
     required: boolean
 }
 
