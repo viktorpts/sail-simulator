@@ -21,7 +21,7 @@ export default class NauticalScene extends Scene {
     private _heightMap: Int16Array;
     private _actorEntity: { driver: BoatLocomotion, position: Position };
     private _gameEntities: { object: Object3D, entity: GameEntity }[] = [];
-    private _gizmos: { (): void }[] = [];
+    private _gizmos: { mesh: Object3D, update: { (): void } }[] = [];
     showForces = false;
 
     constructor() {
@@ -153,25 +153,41 @@ export default class NauticalScene extends Scene {
         if (reference.fixedScale !== undefined) {
             arrow.scale.y = reference.fixedScale || 0.01;
         }
+        if (this.showForces === false) {
+            arrow.visible = false;
+        }
         this.add(arrow);
-        this._gizmos.push(() => {
-            arrow.position.x = this._actorEntity.position.x;
-            arrow.position.y = this._actorEntity.position.y;
+        this._gizmos.push({
+            mesh: arrow,
+            update: () => {
+                arrow.position.x = this._actorEntity.position.x;
+                arrow.position.y = this._actorEntity.position.y;
 
-            if (reference.fixedHeading === undefined) {
-                arrow.rotation.z = -(reference.headingRef[reference.headingName] as number) + (reference.invertHeading ? Math.PI : 0);
-                if (reference.trackActor) {
-                    arrow.rotation.z -= this._actorEntity.position.heading;
+                if (reference.fixedHeading === undefined) {
+                    arrow.rotation.z = -(reference.headingRef[reference.headingName] as number) + (reference.invertHeading ? Math.PI : 0);
+                    if (reference.trackActor) {
+                        arrow.rotation.z -= this._actorEntity.position.heading;
+                    }
                 }
-            }
-            if (reference.fixedScale === undefined) {
-                arrow.scale.y = ((reference.forceRef[reference.scalarName] as number) * (reference.invertForce ? -1 : 1)) || 0.01;
+                if (reference.fixedScale === undefined) {
+                    arrow.scale.y = ((reference.forceRef[reference.scalarName] as number) * (reference.invertForce ? -1 : 1)) || 0.01;
+                }
             }
         });
     }
 
+    showForceGizmos() {
+        this.showForces = true;
+        this._gizmos.forEach(g => g.mesh.visible = true);
+    }
+
+    hideForceGizmos() {
+        this.showForces = false;
+        this._gizmos.forEach(g => g.mesh.visible = false);
+    }
+
     private updateForceGizmos(time: number) {
-        this._gizmos.forEach(g => g());
+        this._gizmos.forEach(g => g.update());
     }
 
     private updateEntities(time: number) {
