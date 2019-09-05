@@ -7,6 +7,8 @@ import Identity from '../../src/utilities/Identity';
 import { EntityIndexById } from '../../src/utilities/Collections';
 import BoatLocomotion from '../../src/components/BoatLocomotion';
 import { STEP_SIZE, TICK_RATE_PER_SEC } from '../../src/constants';
+import Position from '../../src/components/Position';
+import Wind from '../../src/components/Wind';
 
 describe('BoatDriver System', () => {
     const identity = new Identity();
@@ -22,12 +24,19 @@ describe('BoatDriver System', () => {
         const control = new BoatControlState(1002, 1001);
         control.accelerating = true;
         const driver = factory.createBoatDriver(1001);
+        const position = new Position(identity.next(), 1001);
 
         item.parse({
             boats: new EntityIndexById({
                 1001: {
                     control,
-                    driver
+                    driver,
+                    position
+                }
+            }),
+            environment: new EntityIndexById({
+                1000: {
+                    wind: factory.createWind(1000)
                 }
             })
         });
@@ -39,22 +48,31 @@ describe('BoatDriver System', () => {
         let item: BoatDriver;
         let control: BoatControlState;
         let driver: BoatLocomotion;
-        let boats: EntityIndexById<{ control: BoatControlState, driver: BoatLocomotion }>;
+        let position: Position;
+        let boats: EntityIndexById<{ control: BoatControlState, driver: BoatLocomotion, position: Position }>;
+        let environment: EntityIndexById<{ wind: Wind }>;
 
         beforeEach(() => {
             item = new BoatDriver();
             control = new BoatControlState(identity.next(), 1001);
             driver = factory.createBoatDriver(1001);
+            position = new Position(identity.next(), 1001);
             boats = new EntityIndexById({
                 1001: {
                     control,
-                    driver
+                    driver,
+                    position
+                }
+            });
+            environment = new EntityIndexById({
+                1000: {
+                    wind: factory.createWind(1000)
                 }
             });
         })
 
         it('does nothing when controls are off', () => {
-            item.parse({ boats });
+            item.parse({ boats, environment });
             expect(driver.forces.x).to.equal(0);
             expect(driver.forces.y).to.equal(0);
             expect(driver.forces.z).to.equal(0);
@@ -65,7 +83,7 @@ describe('BoatDriver System', () => {
 
         it('can\'t decelerate past 0', () => {
             control.decelerating = true;
-            item.parse({ boats });
+            item.parse({ boats, environment });
             expect(driver.forces.forward).to.equal(0);
         });
 
@@ -74,7 +92,7 @@ describe('BoatDriver System', () => {
 
             control.accelerating = true;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ boats });
+                item.parse({ boats, environment });
             }
             expect(driver.forces.forward).to.be.closeTo(driver.rates.forward * howManySteps * STEP_SIZE, 0.0001);
         });
@@ -84,11 +102,11 @@ describe('BoatDriver System', () => {
 
             control.accelerating = true;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ boats });
+                item.parse({ boats, environment });
             }
             expect(driver.forces.forward).to.equal(driver.limits.forward);
             // Accelerate for one more frame
-            item.parse({ boats });
+            item.parse({ boats, environment });
             expect(driver.forces.forward).to.equal(driver.limits.forward);
         });
 
@@ -97,7 +115,7 @@ describe('BoatDriver System', () => {
 
             control.turningLeft = true;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ boats });
+                item.parse({ boats, environment });
             }
             console.log(driver.forces.heading);
             expect(driver.forces.heading).to.be.closeTo(-driver.rates.heading * howManySteps * STEP_SIZE, 0.0001);
@@ -108,7 +126,7 @@ describe('BoatDriver System', () => {
 
             control.turningRight = true;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ boats });
+                item.parse({ boats, environment });
             }
             expect(driver.forces.heading).to.be.closeTo(driver.rates.heading * howManySteps * STEP_SIZE, 0.0001);
         });
@@ -118,7 +136,7 @@ describe('BoatDriver System', () => {
 
             control.trimmingLeft = true;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ boats });
+                item.parse({ boats, environment });
             }
             expect(driver.trimAngle).to.be.closeTo(driver.trimRate * howManySteps * STEP_SIZE, 0.0001);
         });
@@ -128,7 +146,7 @@ describe('BoatDriver System', () => {
 
             control.trimmingRight = true;
             for (let i = 0; i < howManySteps; i++) {
-                item.parse({ boats });
+                item.parse({ boats, environment });
             }
             expect(driver.trimAngle).to.be.closeTo(-driver.trimRate * howManySteps * STEP_SIZE, 0.0001);
         });
