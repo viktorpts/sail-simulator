@@ -1,4 +1,4 @@
-import { Scene, Color, AmbientLight, Mesh, Object3D, Vector3, Quaternion } from 'three';
+import { Scene, Color, AmbientLight, Mesh, Object3D, Vector3, Quaternion, Vector2 } from 'three';
 import { makeCompass, makeTerrain, makeWaves, makeSea, makeWaterflow, makeArrow } from './modelMaker';
 import Boat from './Boat';
 import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from '../constants';
@@ -105,7 +105,8 @@ export default class NauticalScene extends Scene {
         this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle * 1.3;
 
         const multiplier = this._actorEntity.driver.trimAngle > 0 ? 1 : -1;
-        const speedFraction = this._actorEntity.driver.forces.forward / this._actorEntity.driver.limits.forward;
+        const sailForce = new Vector2(this._actorEntity.driver.sailForce.x, this._actorEntity.driver.sailForce.y);
+        const speedFraction = sailForce.length() / 5;
         this._actor.mainsail.scale.x = Math.max(0.001, speedFraction) * multiplier;
         this._actor.headsail.scale.x = this._actor.mainsail.scale.x;
 

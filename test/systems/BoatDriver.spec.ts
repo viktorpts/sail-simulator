@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import BoatDriver from '../../src/systems/BoatDriver';
+import SailDriver from '../../src/systems/SailDriver';
 import BoatControlState from '../../src/components/BoatControlState';
 import EntityFactory from '../../src/utilities/factories/EntityFactory';
 import Identity from '../../src/utilities/Identity';
@@ -15,11 +15,11 @@ describe('BoatDriver System', () => {
     const factory = new EntityFactory(identity);
 
     it('can be instantiated without error', () => {
-        expect(() => new BoatDriver()).to.not.throw;
+        expect(() => new SailDriver()).to.not.throw;
     });
 
     it('can interact with entitites', () => {
-        const item = new BoatDriver();
+        const item = new SailDriver();
 
         const control = new BoatControlState(1002, 1001);
         control.accelerating = true;
@@ -45,7 +45,7 @@ describe('BoatDriver System', () => {
     });
 
     describe('Control ranges', () => {
-        let item: BoatDriver;
+        let item: SailDriver;
         let control: BoatControlState;
         let driver: BoatLocomotion;
         let position: Position;
@@ -53,7 +53,7 @@ describe('BoatDriver System', () => {
         let environment: EntityIndexById<{ wind: Wind }>;
 
         beforeEach(() => {
-            item = new BoatDriver();
+            item = new SailDriver();
             control = new BoatControlState(identity.next(), 1001);
             driver = factory.createBoatDriver(1001);
             position = new Position(identity.next(), 1001);

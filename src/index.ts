@@ -10,7 +10,7 @@ import { STEP_SIZE_IN_MS } from './constants';
 import * as debug from './utilities/debugOutput';
 import BoatControlState from './components/BoatControlState';
 import PlayerControl from './systems/PlayerControl';
-import BoatDriver from './systems/BoatDriver';
+import SailDriver from './systems/SailDriver';
 import BoatLocomotion from './components/BoatLocomotion';
 import Physics from './systems/Physics';
 import Position from './components/Position';
@@ -54,7 +54,7 @@ function main() {
     world.entitites.push(env);
     world.systems.push(new PlayerControl());
     world.systems.push(new DebugControl());
-    world.systems.push(new BoatDriver());
+    world.systems.push(new SailDriver());
     world.systems.push(new Physics());
 
     // World and rendering

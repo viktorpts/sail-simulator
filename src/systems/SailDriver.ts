@@ -8,7 +8,7 @@ import BoatLocomotion from "../components/BoatLocomotion";
 import Position from "../components/Position";
 import Wind from "../components/Wind";
 
-export default class BoatDriver implements GameSystem {
+export default class SailDriver implements GameSystem {
     readonly mask: ComponentMask = {
         boats: {
             control: {
