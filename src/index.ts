@@ -147,9 +147,7 @@ function deriveWindForces(
     aoaHelper.forward = apparentWindVector.length();
 
     debug.log('Sails', `AoA: ${toDeg(driver.AoA)}, ${Math.sign(driver.AoA) + Math.sign(driver.trimAngle) == 0 ? 'hauling' : 'luffing'}`);
-
-    const efficiency = driver.AoA * driver.trimAngle
-    debug.log('Sail efficiency', `${-efficiency.toFixed(2)} %`);
+    debug.log('Speed', `${(driver.forces.forward * 1.94).toFixed(2)} knots`);
 
     localWindX.heading = Math.PI * 0.5 + actor.heading;
     localWindX.forward = driver.localWind.x;
@@ -167,8 +165,8 @@ function deriveWindForces(
 
     // Local readings
     debug.log('Local Apparent Wind', `X,Y: ${driver.localWind.x.toFixed(2)} ${driver.localWind.y.toFixed(2)}`);
-    debug.log('Force', `Drag: ${driver.drag.toFixed(2)} Lift: ${driver.lift.toFixed(2)}`);
-    debug.log('Sail Vector', `X,Y: ${driver.sailForce.x.toFixed(2)} ${driver.sailForce.y.toFixed(2)}`);
+    debug.log('Force', `Drag: ${driver.drag.toFixed(2)} Lift: ${driver.lift.toFixed(2)} Forward: ${driver.sailForce.y.toFixed(2)}`);
+    debug.log('Sail Force Vector', `X,Y: ${driver.sailForce.x.toFixed(2)} ${driver.sailForce.y.toFixed(2)}`);
 
     function toDeg(rad: number) {
         return (rad / Math.PI * 180).toFixed(0);

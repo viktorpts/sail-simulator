@@ -5,7 +5,7 @@ import { WORLD_HSEGMENTS, WORLD_VSEGMENTS, SEED } from '../constants';
 import { generateHeight } from '../util';
 import TrackingCamera from './TrackingCamera';
 import NauticalSun from "./NauticalSun";
-import PlayerBoat from '../entities/PlayerBoat';
+import SailBoat from '../entities/SailBoat';
 import BoatLocomotion from '../components/BoatLocomotion';
 import Position from '../components/Position';
 import GameEntity from '../entities/GameEntity';
@@ -82,7 +82,7 @@ export default class NauticalScene extends Scene {
         this.sun.position.y = this.sun.target.position.y + 10;
     }
 
-    bindActorToEntity(boat: PlayerBoat) {
+    bindActorToEntity(boat: SailBoat) {
         this._actorEntity = {
             driver: boat.components[BoatLocomotion.name] as BoatLocomotion,
             position: boat.components[Position.name] as Position

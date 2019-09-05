@@ -1,5 +1,5 @@
 import InputState from "../../components/InputState";
-import PlayerBoat from "../../entities/PlayerBoat";
+import SailBoat from "../../entities/SailBoat";
 import Identity from "../Identity";
 import BoatControlState from "../../components/BoatControlState";
 import BoatLocomotion from "../../components/BoatLocomotion";
@@ -25,7 +25,7 @@ export default class EntityFactory {
     constructor(public identity: Identity) {}
 
     createPlayerBoat(input: InputState) {
-        const boat = new PlayerBoat(this.identity.next());
+        const boat = new SailBoat(this.identity.next());
     
         const control = new BoatControlState(this.identity.next(), boat.id);
         const driver = this.createBoatDriver(boat.id);
