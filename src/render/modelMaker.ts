@@ -6,48 +6,145 @@ import { Water } from './lib/Water2';
 
 
 export function makeBoat(color: number) {
-    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color }));
+    const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color, wireframe: false }));
     // hull vertices
-    model.addVertex(0, 4, 1.3);  // 0
-    model.addVertex(-1, 1.5, 1);  // 1
-    model.addVertex(1, 1.5, 1);  // 2
-    model.addVertex(-1, -1.5, 1);  // 3
-    model.addVertex(1, -1.5, 1);  // 4
-    model.addVertex(-0.5, -3, 1.2);  // 5
-    model.addVertex(0.5, -3, 1.2);  // 6
-    model.addVertex(0, 2, 0);  // 7
-    model.addVertex(0, -2, 0);  // 8
+    /// Nose
+    model.addVertex(0,      7,      0);  // 0 Nose
+    model.addVertex(-0.35,     6,    0);  // 1 Bow
+    model.addVertex(0.35,      6,    0);  // 2 Bow
+    model.addVertex(0,          6,  -1);  // 3 Bow
+    /// Bow ring
+    model.addVertex(-1,      4,      0);  // 4
+    model.addVertex(1,      4,     0);      // 5
+    model.addVertex(-0.5,    4,     -0.85);  // 6
+    model.addVertex(0,      4,     -1.2);  // 7
+    model.addVertex(0.5,      4,     -0.85);  // 8
+    /// Mid ring
+    model.addVertex(-1.25,      2.5,      0);  // 9
+    model.addVertex(1.25,      2.5,     0);      // 10
+    model.addVertex(-0.75,    2.5,     -0.85);  // 11
+    model.addVertex(0,        2.5,     -1.3);  // 12
+    model.addVertex(0.75,      2.5,     -0.85);  // 13
+    /// Aft ring
+    model.addVertex(-1.15,      1,      0);  // 14
+    model.addVertex(1.15,      1,     0);      // 15
+    model.addVertex(-0.75,    1,     -0.85);  // 16
+    model.addVertex(0,        1,     -1.2);  // 17
+    model.addVertex(0.75,      1,     -0.85);  // 18
+    /// Aft
+    model.addVertex(-0.75,      0.2,      0);  // 19
+    model.addVertex(0.75,      0.2,     0);      // 20
+    model.addVertex(-0.5,    0,     -0.85);  // 21
+    model.addVertex(0,        0,     -1);  // 22
+    model.addVertex(0.5,      0,     -0.85);  // 23
+
     // mast vertices
-    model.addVertex(0.1, 1, 1);  // 9
-    model.addVertex(0, 0.9, 1);  // 10
-    model.addVertex(-0.1, 1, 1);  // 11
-    model.addVertex(0, 1.1, 1);  // 12
-    model.addVertex(0, 1, 7);  // 13
+    model.addVertex(0.1,    4,      0);  // 24
+    model.addVertex(0,      3.9,    0);  // 25
+    model.addVertex(-0.1,   4,      0);  // 26
+    model.addVertex(0,      4.1,    0);  // 27
+
+    model.addVertex(0.1,    4,      9);  // 28
+    model.addVertex(0,      3.9,    9);  // 29
+    model.addVertex(-0.1,   4,      9);  // 30
+    model.addVertex(0,      4.1,    9);  // 31
+
+    // Cabin
+    model.addVertex(-0.2,    5,      0);  // 32
+    model.addVertex(0.2,    5,      0);  // 33
+    model.addVertex(-0.75,    2,      0);  // 34
+    model.addVertex(0.75,    2,      0);  // 35
+
+    model.addVertex(-0.57,    2.25,      0.3);  // 36
+    model.addVertex(0.57,    2.25,      0.3);  // 37
+    model.addVertex(-0.2308,    4,      0.3);  // 38
+    model.addVertex(0.2308,    4,      0.3);  // 39
+
+
+    // bow
+    model.addFace(0, 3, 1);
+    model.addFace(0, 2, 3);
+
+    // bow ring
+    model.addFace(1, 6, 4);
+    model.addFace(1, 3, 6);
+    model.addFace(3, 7, 6);
+
+    model.addFace(2, 5, 8);
+    model.addFace(2, 8, 3);
+    model.addFace(3, 8, 7);
+
+    // mid ring
+    model.addFace(4, 11, 9);
+    model.addFace(4, 6, 11);
+    model.addFace(6, 12, 11);
+    model.addFace(6, 7, 12);
+
+    model.addFace(5, 10, 13);
+    model.addFace(5, 13, 8);
+    model.addFace(8, 13, 12);
+    model.addFace(8, 12, 7);
+
+    // aft ring
+    model.addFace(9, 11, 14);
+    model.addFace(11, 16, 14);
+    model.addFace(11, 12, 16);
+    model.addFace(12, 17, 16);
+
+    model.addFace(10, 15, 13);
+    model.addFace(13, 15, 18);
+    model.addFace(13, 18, 12);
+    model.addFace(12, 18, 17);
+
+    // aft
+    model.addFace(14, 16, 19);
+    model.addFace(16, 21, 19);
+    model.addFace(16, 17, 21);
+    model.addFace(17, 22, 21);
+
+    model.addFace(15, 20, 18);
+    model.addFace(18, 20, 23);
+    model.addFace(18, 23, 17);
+    model.addFace(17, 23, 22);
+
+    model.addFace(19, 21, 20);
+    model.addFace(21, 23, 20);
+    model.addFace(21, 22, 23);
 
     // deck
     model.addFace(0, 1, 2);
-    model.addFace(1, 3, 4);
     model.addFace(1, 4, 2);
-    model.addFace(3, 5, 6);
-    model.addFace(3, 6, 4);
-    // bow
-    model.addFace(0, 7, 1);
-    model.addFace(0, 2, 7);
-    // port side
-    model.addFace(7, 8, 3);
-    model.addFace(7, 3, 1);
-    // starboard
-    model.addFace(7, 2, 8);
-    model.addFace(8, 2, 4);
-    // aft
-    model.addFace(8, 5, 3);
-    model.addFace(8, 6, 5);
-    model.addFace(8, 4, 6);
+    model.addFace(2, 4, 5);
+    model.addFace(4, 9, 5);
+    model.addFace(5, 9, 10);
+    model.addFace(9, 14, 10);
+    model.addFace(10, 14, 15);
+    model.addFace(14, 19, 15);
+    model.addFace(15, 19, 20);
+
     // mast
-    model.addFace(10, 9, 13);
-    model.addFace(11, 10, 13);
-    model.addFace(12, 11, 13);
-    model.addFace(9, 12, 13);
+    model.addFace(25, 24, 29);
+    model.addFace(29, 24, 28);
+    model.addFace(24, 27, 31);
+    model.addFace(24, 31, 28);
+    model.addFace(27, 26, 30);
+    model.addFace(27, 30, 31);
+    model.addFace(26, 25, 29);
+    model.addFace(26, 29, 30);
+    model.addFace(29, 31, 30);
+    model.addFace(29, 28, 31);
+
+    // cabin
+    model.addFace(32, 39, 33);
+    model.addFace(32, 38, 39);
+    model.addFace(32, 34, 36);
+    model.addFace(32, 36, 38);
+    model.addFace(33, 37, 35);
+    model.addFace(33, 39, 37);
+    model.addFace(34, 37, 36);
+    model.addFace(34, 35, 37);
+    model.addFace(36, 37, 39);
+    model.addFace(36, 39, 38);
 
     model.mesh.castShadow = true;
     model.mesh.receiveShadow = true;
@@ -56,10 +153,10 @@ export function makeBoat(color: number) {
 
 export function makeRudder(color: number) {
     const model = new MeshBuilder(new THREE.MeshPhongMaterial({ color }));
-    model.addVertex(0, 0, 0);    // 0
-    model.addVertex(0, -0.5, 0); // 1
-    model.addVertex(0, -1, -1);  // 2
-    model.addVertex(0, 0, -1);   // 3
+    model.addVertex(0, 0, 0);       // 0
+    model.addVertex(0, -0.25, 0);   // 1
+    model.addVertex(0, -0.4, -1.5); // 2
+    model.addVertex(0, 0, -1.5);    // 3
 
     model.addFace(0, 1, 2);
     model.addFace(0, 2, 3);

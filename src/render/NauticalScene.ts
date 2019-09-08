@@ -42,7 +42,7 @@ export default class NauticalScene extends Scene {
         const sea = makeSea(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
         sea.position.z = -0.1;
         this.add(boat.mesh);
-        this.add(terrain);
+        //this.add(terrain);
         this.add(sea);
         // Water surface
         this.waves = makeWaves();
@@ -112,7 +112,7 @@ export default class NauticalScene extends Scene {
 
         // Bobbing
         //*
-        this._actor.mesh.position.z = (Math.sin(time * 2 / 3) / 10) - 0.3;
+        this._actor.mesh.position.z = (Math.sin(time * 2 / 3) / 10);
         //this._actor.mesh.rotation.y = Math.sin(time) / 10 + (Math.PI / 3 - Math.abs(this._actor.mainsail.rotation.z)) * 0.4 * speedFraction * (this._actor.mainsail.rotation.z < 0 ? -1 : 1);
         const rotY = Math.sin(time) / 10 + (Math.PI / 3 - Math.abs(this._actor.mainsail.rotation.z)) * 0.4 * speedFraction * (this._actor.mainsail.rotation.z < 0 ? -1 : 1);
         this._actor.mesh.rotateOnAxis(new Vector3(0, 1, 0), rotY);
