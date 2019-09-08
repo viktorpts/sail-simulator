@@ -21,6 +21,10 @@ import { Sound } from './utilities/sound';
 import Transform from './components/Transform';
 import Wind from './components/Wind';
 import DebugControl from './systems/DebugControl';
+import SailAnimator from './systems/SailAnimator';
+import AnimationTweener from './systems/AnimationTweener';
+import SailRigging from './components/SailRigging';
+import AnimationRigging from './components/AnimationRigging';
 
 let going = true;
 document.getElementById('pause').addEventListener('click', () => going = false);
@@ -56,12 +60,15 @@ function main() {
     world.systems.push(new DebugControl());
     world.systems.push(new SailDriver());
     world.systems.push(new Physics());
+    world.systems.push(new SailAnimator());
+    world.systems.push(new AnimationTweener());
 
     // World and rendering
     initializeCamera(scene.camera);
     scene.bindActorToEntity(boat);
     const actor = boat.components[Position.name] as Position;
     const driver = boat.components[BoatLocomotion.name] as BoatLocomotion;
+    const rigging = boat.components[AnimationRigging.name] as SailRigging;
 
     // Force gizmos and environemt
     const updateWindGizmos = addForceGizmos(scene, driver, actor);
@@ -82,7 +89,8 @@ function main() {
                 world.update();
             }
             scene.step(time);
-            updateWindGizmos(env.components[Wind.name] as Wind);
+            //updateWindGizmos(env.components[Wind.name] as Wind);
+            debugAnimation(rigging);
 
             updateMap(actor.lon, actor.lat, '#fff');
         }
@@ -101,6 +109,12 @@ function main() {
 }
 
 main();
+
+function debugAnimation(rigging: SailRigging) {
+    debug.log('Animation', `${rigging.clips.heel.state} ${rigging.clips.heel.targetState}`);
+    debug.log('State', `${rigging.clips.heel.changeRate}`);
+
+}
 
 function addForceGizmos(scene: NauticalScene, driver: BoatLocomotion, actor: Position) {
     const windHelper = new Transform(500, 1000);

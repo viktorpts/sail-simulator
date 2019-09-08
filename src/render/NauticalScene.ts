@@ -11,6 +11,8 @@ import Position from '../components/Position';
 import GameEntity from '../entities/GameEntity';
 import GameComponent from '../components/GameComponent';
 import Transform from '../components/Transform';
+import SailRigging from '../components/SailRigging';
+import AnimationRigging from '../components/AnimationRigging';
 
 
 export default class NauticalScene extends Scene {
@@ -19,7 +21,7 @@ export default class NauticalScene extends Scene {
     private waves: { mesh: Mesh, update: Function, getOffset: Function };
     private sun: NauticalSun;
     private _heightMap: Int16Array;
-    private _actorEntity: { driver: BoatLocomotion, position: Position };
+    private _actorEntity: { driver: BoatLocomotion, position: Position, rigging: SailRigging };
     private _gameEntities: { object: Object3D, entity: GameEntity }[] = [];
     private _gizmos: { mesh: Object3D, update: { (): void } }[] = [];
     showForces = false;
@@ -85,7 +87,8 @@ export default class NauticalScene extends Scene {
     bindActorToEntity(boat: SailBoat) {
         this._actorEntity = {
             driver: boat.components[BoatLocomotion.name] as BoatLocomotion,
-            position: boat.components[Position.name] as Position
+            position: boat.components[Position.name] as Position,
+            rigging: boat.components[AnimationRigging.name] as SailRigging
         }
     }
 
@@ -101,20 +104,23 @@ export default class NauticalScene extends Scene {
 
         this._actor.rudder.rotation.z = this._actorEntity.driver.forces.heading;
 
-        this._actor.mainsail.rotation.z = -this._actorEntity.driver.trimAngle;
-        this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle * 1.3;
+        //this._actor.mainsail.rotation.z = -this._actorEntity.driver.trimAngle;
+        //this._actor.headsail.rotation.z = -this._actorEntity.driver.trimAngle * 1.3;
+        this._actor.mainsail.rotation.z = -this._actorEntity.rigging.clips.boom.state;
+        this._actor.headsail.rotation.z = -this._actorEntity.rigging.clips.headsail.state;
 
         const multiplier = this._actorEntity.driver.trimAngle > 0 ? 1 : -1;
         const sailForce = new Vector2(this._actorEntity.driver.sailForce.x, this._actorEntity.driver.sailForce.y);
         const speedFraction = sailForce.length() / 5;
         this._actor.mainsail.scale.x = Math.max(0.001, speedFraction) * multiplier;
-        this._actor.headsail.scale.x = this._actor.mainsail.scale.x;
+        this._actor.headsail.scale.x = this._actor.mainsail.scale.x * Math.sign(this._actorEntity.rigging.clips.headsail.state) * Math.sign(this._actorEntity.rigging.clips.boom.state);
 
         // Bobbing
         //*
         this._actor.mesh.position.z = (Math.sin(time * 2 / 3) / 10);
         //this._actor.mesh.rotation.y = Math.sin(time) / 10 + (Math.PI / 3 - Math.abs(this._actor.mainsail.rotation.z)) * 0.4 * speedFraction * (this._actor.mainsail.rotation.z < 0 ? -1 : 1);
-        const rotY = Math.sin(time) / 10 + (Math.PI / 3 - Math.abs(this._actor.mainsail.rotation.z)) * 0.4 * speedFraction * (this._actor.mainsail.rotation.z < 0 ? -1 : 1);
+        //const rotY = Math.sin(time) / 10 + (Math.PI / 3 - Math.abs(this._actor.mainsail.rotation.z)) * 0.4 * speedFraction * (this._actor.mainsail.rotation.z < 0 ? -1 : 1);
+        const rotY = Math.sin(time) / 10 + this._actorEntity.rigging.clips.heel.state;
         this._actor.mesh.rotateOnAxis(new Vector3(0, 1, 0), rotY);
         //*/
     }

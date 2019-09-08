@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { adjustRate, applyRate } from '../../src/systems/Animator';
+import { adjustRate, applyRate } from '../../src/systems/AnimationTweener';
 import AnimationClip from '../../src/components/AnimationClip';
 import { STEP_SIZE, TICK_RATE_PER_SEC } from '../../src/constants';
 

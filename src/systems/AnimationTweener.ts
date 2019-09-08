@@ -12,7 +12,7 @@ import { wrap } from "../utilities/helpers";
 //import * as fs from 'fs';
 
 
-export default class Animator implements GameSystem {
+export default class AnimationTweener implements GameSystem {
     readonly mask: ComponentMask = {
         actors: {
             rigging: {
@@ -93,11 +93,18 @@ export function applyRate(clip: AnimationClip) {
             clip.state = clip.targetState
         }
     } else {
+        const requiredDelta = clip.targetState - clip.state;
+        clip.state = clip.state + clip.changeRate * STEP_SIZE;
         if (clip.changeRate > 0) {
-            clip.state = Math.min(clip.state + clip.changeRate * STEP_SIZE, clip.targetState);
+            if (Math.sign(requiredDelta) * Math.sign(clip.changeRate) >= 0) {
+                clip.state = Math.min(clip.state, clip.targetState);
+            }
         } else if (clip.changeRate < 0) {
-            clip.state = Math.max(clip.state + clip.changeRate * STEP_SIZE, clip.targetState);
+            if (Math.sign(requiredDelta) * Math.sign(clip.changeRate) >= 0) {
+                clip.state = Math.max(clip.state, clip.targetState);
+            }
         }
+
     }
 }
 
@@ -138,17 +145,16 @@ function onAnimationEnd(clip: AnimationClip): boolean {
 
 /*
 function exportGraph() {
-    const animator = new Animator();
+    const animator = new AnimationTweener();
 
-    /*
     const clip = {
         id: 1001,
         entityId: 1000,
         state: 0,
-        targetState: 1,
+        targetState: 0.3,
         changeRate: 0,
-        maxRate: 1,
-        acceleration: 10,
+        maxRate: 5,
+        acceleration: 0.1,
     } as AnimationClip;
 
     /*
@@ -196,6 +202,9 @@ function exportGraph() {
     let output = `${time}\t${clip.state}\t${clip.changeRate}\n`;
 
     for (let i = 0; i < frames; i++) {
+        if (i === 100) {
+            clip.targetState = 0;
+        }
         time += STEP_SIZE;
         animator.parse({ actors });
         output += `${time}\t${clip.state}\t${clip.changeRate}\n`;
@@ -205,7 +214,7 @@ function exportGraph() {
 }
 
 exportGraph();
-*/
+//*/
 
 //console.log(getShortestDistance(16, 15, 0, 360));
 //console.log(getShortestDistance(14, 15, 0, 360));
