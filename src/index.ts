@@ -110,15 +110,15 @@ function addForceGizmos(scene: NauticalScene, driver: BoatLocomotion, actor: Pos
     const localWindX = new Transform(504, 1000);
     const localWindY = new Transform(505, 1000);
     const forceHelper = new Transform(506, 1000);
-    scene.addForceGizmo({ forceRef: driver.forces, scalarName: 'forward', headingRef: actor, headingName: 'heading' });
-    scene.addForceGizmo({ fixedScale: 2, headingRef: driver, headingName: 'trimAngle', trackActor: true, invertHeading: true, color: 0xffff00 });
+    //scene.addForceGizmo({ forceRef: driver.forces, scalarName: 'forward', headingRef: actor, headingName: 'heading' });
+    //scene.addForceGizmo({ fixedScale: 2, headingRef: driver, headingName: 'trimAngle', trackActor: true, invertHeading: true, color: 0xffff00 });
     scene.addForceGizmo({ transform: windHelper, color: 0x0000ff });
     scene.addForceGizmo({ transform: aoaHelper, color: 0x6666ff });
-    scene.addForceGizmo({ transform: liftHelper, color: 0x00ff00 });
-    scene.addForceGizmo({ transform: dragHelper, color: 0xff0000 });
-    scene.addForceGizmo({ transform: localWindX, color: 0xff00ff });
-    scene.addForceGizmo({ transform: localWindY, color: 0x00ffff });
-    scene.addForceGizmo({ transform: forceHelper, color: 0x000001 });
+    //scene.addForceGizmo({ transform: liftHelper, color: 0x00ff00 });
+    //scene.addForceGizmo({ transform: dragHelper, color: 0xff0000 });
+    //scene.addForceGizmo({ transform: localWindX, color: 0xff00ff });
+    //scene.addForceGizmo({ transform: localWindY, color: 0x00ffff });
+    //scene.addForceGizmo({ transform: forceHelper, color: 0x000001 });
 
     return (wind: Wind) => deriveWindForces(actor, driver, wind, windHelper, aoaHelper, liftHelper, dragHelper, localWindX, localWindY, forceHelper);
 }

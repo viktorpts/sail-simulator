@@ -7,12 +7,15 @@
 </head>
 
 <body>
-    <h1>Sailing Simulator</h1>
-    <div id="output">
-        <canvas id="canvas" width="800" height="600" tabindex="0"></canvas>
-        <button id="pause">Pause</button>
-        <button id="resume">Resume</button>
-        <input id="forces" type="checkbox"><label for="forces">Show Forces</label>
+    <div>
+        <div style="display: inline-block">
+            <canvas id="canvas" width="800" height="600" tabindex="0"></canvas>
+        </div>
+        <div id="output" style="display: inline-block">
+            <button id="pause">Pause</button>
+            <button id="resume">Resume</button><br>
+            <input id="forces" type="checkbox"><label for="forces">Show Forces</label><br>
+        </div>
     </div>
     <div id="debug"></div>
 </body>

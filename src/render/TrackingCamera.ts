@@ -48,7 +48,7 @@ export default class TrackingCamera extends PerspectiveCamera {
     }
 
     moveIn(delta = 1) {
-        this.distance -= (0.05 + Number((this.distance * 0.01).toFixed(2))) * delta;
+        this.distance = Math.max(this.distance - (0.05 + Number((this.distance * 0.01).toFixed(2))) * delta, 1);
     }
 
     moveOut(delta = 1) {
