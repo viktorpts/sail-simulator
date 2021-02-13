@@ -44,7 +44,7 @@ export default class NauticalScene extends Scene {
         const sea = makeSea(this._heightMap, WORLD_HSEGMENTS, WORLD_VSEGMENTS);
         sea.position.z = -0.1;
         this.add(boat.mesh);
-        //this.add(terrain);
+        this.add(terrain);
         this.add(sea);
         // Water surface
         this.waves = makeWaves();
